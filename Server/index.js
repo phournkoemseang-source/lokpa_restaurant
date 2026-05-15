@@ -311,44 +311,68 @@ app.post('/api/login', async (req, res) => {
 })
 
 // Google OAuth
-app.get('/api/auth/google',
-  passport.authenticate('google', { scope: ['profile', 'email'] })
-)
+app.get('/api/auth/google', (req, res, next) => {
+  const origin = req.headers.referer || 'http://localhost:5173';
+  passport.authenticate('google', { 
+    scope: ['profile', 'email'],
+    state: Buffer.from(JSON.stringify({ origin })).toString('base64')
+  })(req, res, next);
+});
 
-app.get('/auth/google/callback',
-  passport.authenticate('google', { session: false }),
-  async (req, res) => {
-    const user = req.user
+app.get('/auth/google/callback', (req, res, next) => {
+  passport.authenticate('google', { session: false }, (err, user) => {
+    const stateStr = req.query.state ? Buffer.from(req.query.state, 'base64').toString() : '{}';
+    let state = { origin: 'http://localhost:5173' };
+    try { state = JSON.parse(stateStr); } catch (e) {}
+    
+    const origin = state.origin || 'http://localhost:5173';
+    const baseUrl = origin.includes('5174') ? 'http://localhost:5174' : 'http://localhost:5173';
+
+    if (err || !user) {
+      console.error('Auth Error:', err);
+      return res.redirect(`${baseUrl}/?error=auth_failed`);
+    }
+
     const token = jwt.sign(
       { id: user.id, email: user.email, role: user.role, name: user.name },
       process.env.JWT_SECRET,
       { expiresIn: process.env.JWT_EXPIRES_IN }
     )
-    const clientUrl = req.headers.referer || 'http://localhost:5174'
-    const redirectUrl = clientUrl.includes('5173') ? 'http://localhost:5173/auth/callback' : 'http://localhost:5174/auth/callback'
-    res.redirect(`${redirectUrl}?token=${token}`)
-  }
-)
+    res.redirect(`${baseUrl}/auth/callback?token=${token}`)
+  })(req, res, next);
+});
 
 // Apple OAuth
-app.get('/api/auth/apple',
-  passport.authenticate('apple', { scope: ['name', 'email'] })
-)
+app.get('/api/auth/apple', (req, res, next) => {
+  const origin = req.headers.referer || 'http://localhost:5173';
+  passport.authenticate('apple', { 
+    scope: ['name', 'email'],
+    state: Buffer.from(JSON.stringify({ origin })).toString('base64')
+  })(req, res, next);
+});
 
-app.get('/api/auth/apple/callback',
-  passport.authenticate('apple', { session: false }),
-  async (req, res) => {
-    const user = req.user
+app.get('/api/auth/apple/callback', (req, res, next) => {
+  passport.authenticate('apple', { session: false }, (err, user) => {
+    const stateStr = req.query.state ? Buffer.from(req.query.state, 'base64').toString() : '{}';
+    let state = { origin: 'http://localhost:5173' };
+    try { state = JSON.parse(stateStr); } catch (e) {}
+    
+    const origin = state.origin || 'http://localhost:5173';
+    const baseUrl = origin.includes('5174') ? 'http://localhost:5174' : 'http://localhost:5173';
+
+    if (err || !user) {
+      console.error('Apple Auth Error:', err);
+      return res.redirect(`${baseUrl}/?error=auth_failed`);
+    }
+
     const token = jwt.sign(
       { id: user.id, email: user.email, role: user.role, name: user.name },
       process.env.JWT_SECRET,
       { expiresIn: process.env.JWT_EXPIRES_IN }
     )
-    const clientUrl = req.headers.referer || 'http://localhost:5174'
-    const redirectUrl = clientUrl.includes('5173') ? 'http://localhost:5173/auth/callback' : 'http://localhost:5174/auth/callback'
-    res.redirect(`${redirectUrl}?token=${token}`)
-  }
-)
+    res.redirect(`${baseUrl}/auth/callback?token=${token}`)
+  })(req, res, next);
+});
 
 // Protected route
 app.get('/api/profile', authenticateToken, async (req, res) => {
