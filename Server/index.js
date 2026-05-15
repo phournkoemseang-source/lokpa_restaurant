@@ -21,18 +21,104 @@ const app = express()
 const PORT = process.env.PORT || 5001
 
 // Database connection
-let db;
-try {
-  db = await mysql.createConnection({
-    host: process.env.DB_HOST,
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-    database: process.env.DB_NAME
-  })
-  console.log('Connected to MySQL database')
-} catch (error) {
-  console.error('Database connection failed:', error.message)
+const db = mysql.createPool({
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME,
+  waitForConnections: true,
+  connectionLimit: 10,
+  queueLimit: 0
+})
+
+// Initialize database
+const initDB = async () => {
+  try {
+    const connection = await db.getConnection()
+    console.log('Connected to MySQL database')
+    connection.release()
+
+    // Create users table if not exists
+    await db.execute(`
+      CREATE TABLE IF NOT EXISTS users (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        email VARCHAR(255) UNIQUE NOT NULL,
+        password VARCHAR(255),
+        name VARCHAR(255),
+        role ENUM('user', 'admin') DEFAULT 'user',
+        provider VARCHAR(50),
+        provider_id VARCHAR(255),
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `)
+
+    // Ensure social login columns exist (for migration)
+    try {
+      await db.execute('ALTER TABLE users MODIFY COLUMN password VARCHAR(255) NULL')
+      await db.execute('ALTER TABLE users ADD COLUMN IF NOT EXISTS provider VARCHAR(50) DEFAULT "local"')
+      await db.execute('ALTER TABLE users ADD COLUMN IF NOT EXISTS provider_id VARCHAR(255)')
+    } catch (e) {
+      console.log('Schema check: provider columns already present or handled.')
+    }
+
+    // Create admin user if not exists
+    await db.execute(`
+      INSERT IGNORE INTO users (email, password, name, role, provider) 
+      VALUES ('admin@gmail.com', 'admin123', 'Admin', 'admin', 'local')
+    `)
+
+    // Create reservations table
+    await db.execute(`
+      CREATE TABLE IF NOT EXISTS reservations (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        user_id INT,
+        date DATE NOT NULL,
+        time TIME NOT NULL,
+        guests INT NOT NULL,
+        name VARCHAR(255) NOT NULL,
+        email VARCHAR(255) NOT NULL,
+        phone VARCHAR(50),
+        special_requests TEXT,
+        status ENUM('pending', 'confirmed', 'cancelled') DEFAULT 'pending',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `)
+
+    // Create menu_items table
+    await db.execute(`
+      CREATE TABLE IF NOT EXISTS menu_items (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        name VARCHAR(255) NOT NULL,
+        description TEXT,
+        price DECIMAL(10, 2) NOT NULL,
+        category ENUM('appetizer', 'main', 'dessert', 'drink') NOT NULL,
+        image_url VARCHAR(500),
+        available BOOLEAN DEFAULT TRUE,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `)
+
+    // Seed menu items if empty
+    const [menuCount] = await db.execute('SELECT COUNT(*) as count FROM menu_items')
+    if (menuCount[0].count === 0) {
+      await db.execute(`
+        INSERT INTO menu_items (name, description, price, category) VALUES
+        ('Truffle Arancini', 'Wild mushroom risotto balls, truffle aioli', 18.00, 'appetizer'),
+        ('Seared Scallops', 'Cauliflower purée, crispy pancetta', 24.00, 'appetizer'),
+        ('Wagyu Striploin', '12oz, smoked bone marrow, red wine jus', 65.00, 'main'),
+        ('Miso Black Cod', 'Coconut jasmine rice, bok choy', 42.00, 'main'),
+        ('Gold Leaf Soufflé', 'Dark chocolate, Grand Marnier', 22.00, 'dessert'),
+        ('Matcha Tiramisu', 'Espresso-soaked ladyfingers', 16.00, 'dessert')
+      `)
+      console.log('Sample menu items seeded')
+    }
+  } catch (error) {
+    console.error('Database initialization failed:', error.message)
+    console.error('Please ensure MySQL is running and the database "' + process.env.DB_NAME + '" exists.')
+  }
 }
+
+await initDB()
 
 // Middleware
 app.use(cors({
@@ -41,84 +127,6 @@ app.use(cors({
 }))
 app.use(express.json())
 app.use(passport.initialize())
-
-if (db) {
-  // Create users table if not exists
-  await db.execute(`
-    CREATE TABLE IF NOT EXISTS users (
-      id INT AUTO_INCREMENT PRIMARY KEY,
-      email VARCHAR(255) UNIQUE NOT NULL,
-      password VARCHAR(255),
-      name VARCHAR(255),
-      role ENUM('user', 'admin') DEFAULT 'user',
-      provider VARCHAR(50),
-      provider_id VARCHAR(255),
-      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    )
-  `)
-
-  // Ensure social login columns exist (for migration)
-  try {
-    await db.execute('ALTER TABLE users MODIFY COLUMN password VARCHAR(255) NULL')
-    await db.execute('ALTER TABLE users ADD COLUMN IF NOT EXISTS provider VARCHAR(50) DEFAULT "local"')
-    await db.execute('ALTER TABLE users ADD COLUMN IF NOT EXISTS provider_id VARCHAR(255)')
-  } catch (e) {
-    // Some MySQL versions don't support ADD COLUMN IF NOT EXISTS, so we catch errors if columns already exist
-    console.log('Schema check: provider columns already present or handled.')
-  }
-
-  // Create admin user if not exists
-  await db.execute(`
-    INSERT IGNORE INTO users (email, password, name, role, provider) 
-    VALUES ('admin@gmail.com', 'admin123', 'Admin', 'admin', 'local')
-  `)
-
-  // Create reservations table
-  await db.execute(`
-    CREATE TABLE IF NOT EXISTS reservations (
-      id INT AUTO_INCREMENT PRIMARY KEY,
-      user_id INT,
-      date DATE NOT NULL,
-      time TIME NOT NULL,
-      guests INT NOT NULL,
-      name VARCHAR(255) NOT NULL,
-      email VARCHAR(255) NOT NULL,
-      phone VARCHAR(50),
-      special_requests TEXT,
-      status ENUM('pending', 'confirmed', 'cancelled') DEFAULT 'pending',
-      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    )
-  `)
-
-  // Create menu_items table
-  await db.execute(`
-    CREATE TABLE IF NOT EXISTS menu_items (
-      id INT AUTO_INCREMENT PRIMARY KEY,
-      name VARCHAR(255) NOT NULL,
-      description TEXT,
-      price DECIMAL(10, 2) NOT NULL,
-      category ENUM('appetizer', 'main', 'dessert', 'drink') NOT NULL,
-      image_url VARCHAR(500),
-      available BOOLEAN DEFAULT TRUE,
-      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    )
-  `)
-
-  // Seed menu items if empty
-  const [menuCount] = await db.execute('SELECT COUNT(*) as count FROM menu_items')
-  if (menuCount[0].count === 0) {
-    await db.execute(`
-      INSERT INTO menu_items (name, description, price, category) VALUES
-      ('Truffle Arancini', 'Wild mushroom risotto balls, truffle aioli', 18.00, 'appetizer'),
-      ('Seared Scallops', 'Cauliflower purée, crispy pancetta', 24.00, 'appetizer'),
-      ('Wagyu Striploin', '12oz, smoked bone marrow, red wine jus', 65.00, 'main'),
-      ('Miso Black Cod', 'Coconut jasmine rice, bok choy', 42.00, 'main'),
-      ('Gold Leaf Soufflé', 'Dark chocolate, Grand Marnier', 22.00, 'dessert'),
-      ('Matcha Tiramisu', 'Espresso-soaked ladyfingers', 16.00, 'dessert')
-    `)
-    console.log('Sample menu items seeded')
-  }
-}
 
 // Passport Google OAuth Strategy
 passport.use(new GoogleStrategy({
