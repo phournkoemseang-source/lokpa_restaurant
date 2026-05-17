@@ -15,7 +15,7 @@ import { ShieldCheck } from 'lucide-vue-next'
     <p class="text-text-subtle text-base md:text-lg leading-relaxed max-w-md">
       Access your private portal to manage reservations,
       explore curated menus, and experience the elite
-      precision of Nekmak.
+      precision of LokPa.
     </p>
 
     <div class="flex items-center gap-3 pt-4">

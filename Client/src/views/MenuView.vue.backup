@@ -1,0 +1,184 @@
+<script setup lang="ts">
+import { ChefHat, Loader2, Info, ShoppingBag, Search, ChevronRight } from 'lucide-vue-next'
+import { ref, onMounted, computed } from 'vue'
+import MenuCard from '@/components/MenuCard.vue'
+import { useCartStore } from '@/stores/cart'
+
+interface MenuItem {
+  id: number
+  name: string
+  description: string
+  price: number
+  category: string
+  image_url: string
+  available: boolean
+}
+
+const menuItems = ref<MenuItem[]>([])
+const isLoading = ref(true)
+const error = ref('')
+const activeCategory = ref('All')
+const searchQuery = ref('')
+
+const cartStore = useCartStore()
+
+const categories = [
+  'All',
+  'Foods',
+  'Drinks',
+  'Fruites',
+  'Pizza&Buger',
+  'Sweets',
+  'Vegeterain',
+  'Wines'
+]
+
+onMounted(async () => {
+  try {
+    const response = await fetch('http://localhost:5001/api/menu')
+    if (!response.ok) throw new Error('Failed to fetch menu')
+    menuItems.value = await response.json()
+  } catch (err) {
+    error.value = 'Could not load the menu. Please try again later.'
+    console.error(err)
+  } finally {
+    isLoading.value = false
+  }
+})
+
+const filteredItems = computed(() => {
+  let items = menuItems.value
+  
+  if (activeCategory.value !== 'All') {
+    items = items.filter(item => item.category === activeCategory.value)
+  }
+  
+  if (searchQuery.value) {
+    const query = searchQuery.value.toLowerCase()
+    items = items.filter(item => 
+      item.name.toLowerCase().includes(query) || 
+      item.description.toLowerCase().includes(query)
+    )
+  }
+  
+  return items
+})
+</script>
+
+<template>
+  <div class="min-h-screen bg-base-dark text-white">
+    <!-- Elegant Hero -->
+    <section class="relative h-[80vh] flex items-center justify-center overflow-hidden">
+      <div class="absolute inset-0 bg-[url('@/assets/pictures/Foods/sharonang-fish-amok-921926_1920.jpg')] bg-cover bg-center opacity-40 scale-110"></div>
+      <div class="absolute inset-0 bg-gradient-to-b from-base-dark/90 via-transparent to-base-dark"></div>
+      
+      <div class="relative z-10 text-center space-y-8 px-6 max-w-4xl">
+        <div class="flex items-center justify-center gap-4 mb-4">
+            <div class="h-px w-12 bg-gold/50"></div>
+            <span class="text-gold tracking-[0.5em] uppercase text-xs font-bold">The Gastronomy</span>
+            <div class="h-px w-12 bg-gold/50"></div>
+        </div>
+        <h1 class="font-serif text-7xl md:text-9xl text-white tracking-tighter leading-none">The Menu</h1>
+        <p class="text-text-subtle text-lg md:text-xl font-serif italic max-w-2xl mx-auto leading-relaxed">
+          Discover a curated selection of modern fusion delicacies, crafted with passion and precision using the finest local ingredients.
+        </p>
+        
+        <div class="pt-8">
+            <button @click="activeCategory = 'Foods'" class="group flex items-center gap-3 mx-auto text-gold uppercase tracking-[0.3em] text-[10px] font-bold hover:text-white transition-colors">
+                Explore Culinary Creations
+                <ChevronRight class="w-4 h-4 group-hover:translate-x-2 transition-transform" />
+            </button>
+        </div>
+      </div>
+
+      <!-- Scroll Indicator -->
+      <div class="absolute bottom-12 left-1/2 -translate-x-1/2 flex flex-col items-center gap-4 opacity-50">
+          <div class="w-px h-16 bg-gradient-to-b from-gold to-transparent"></div>
+      </div>
+    </section>
+
+    <!-- Navigation & Search -->
+    <div class="sticky top-16 z-40 bg-base-dark/95 border-b border-gold/10 backdrop-blur-md">
+        <div class="container mx-auto px-6 lg:px-16 flex flex-col md:flex-row justify-between items-center py-6 gap-6">
+            <!-- Categories -->
+            <div class="flex flex-wrap justify-center gap-2">
+                <button 
+                    v-for="cat in categories" 
+                    :key="cat"
+                    @click="activeCategory = cat"
+                    :class="[
+                    'px-6 py-2 rounded-full transition-all duration-500 uppercase tracking-widest text-[9px] font-black',
+                    activeCategory === cat 
+                        ? 'bg-gold text-base-dark shadow-xl shadow-gold/20' 
+                        : 'text-text-muted hover:text-gold'
+                    ]"
+                >
+                    {{ cat }}
+                </button>
+            </div>
+
+            <!-- Search -->
+            <div class="relative w-full md:w-80 group">
+                <Search class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gold/30 group-focus-within:text-gold transition-colors" />
+                <input 
+                    v-model="searchQuery"
+                    type="text" 
+                    placeholder="Search the menu..."
+                    class="w-full bg-transparent border-b border-gold/20 py-2 pl-12 pr-4 text-sm focus:outline-none focus:border-gold transition-all placeholder:text-text-muted italic"
+                />
+            </div>
+        </div>
+    </div>
+
+    <!-- Menu Content -->
+    <section class="container mx-auto px-6 lg:px-16 py-24">
+      <!-- Loading -->
+      <div v-if="isLoading" class="flex flex-col items-center justify-center py-40">
+        <Loader2 class="w-12 h-12 text-gold animate-spin mb-6" />
+        <p class="text-gold tracking-[0.3em] uppercase text-xs font-bold">Curating Excellence...</p>
+      </div>
+
+      <!-- Grid Layout: Exactly 3 items per row for premium look -->
+      <div v-else>
+        <div v-if="filteredItems.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-12 gap-y-20">
+            <MenuCard 
+                v-for="item in filteredItems" 
+                :key="item.id" 
+                :item="item" 
+            />
+        </div>
+
+        <!-- Empty State -->
+        <div v-else class="text-center py-40 space-y-8">
+          <div class="w-24 h-24 border border-dashed border-gold/20 rounded-full flex items-center justify-center mx-auto">
+            <Info class="w-8 h-8 text-gold/20" />
+          </div>
+          <div class="space-y-4">
+            <p class="font-serif text-4xl text-white">Seasonal Refresh</p>
+            <p class="text-text-muted italic max-w-md mx-auto">We are currently refining our menu to bring you the best seasonal ingredients. Please check back shortly or try a different category.</p>
+            <button @click="activeCategory = 'All'; searchQuery = ''" class="text-gold uppercase tracking-widest text-xs font-bold hover:underline">View Entire Menu</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Floating UI -->
+    <div class="fixed bottom-12 right-12 z-[90] flex flex-col gap-4">
+        <button 
+            @click="cartStore.toggleCart()"
+            class="bg-gold text-base-dark p-6 rounded-full shadow-2xl hover:scale-110 transition-transform active:scale-95 group relative"
+        >
+            <ShoppingBag class="w-6 h-6" />
+            <span v-if="cartStore.totalItems > 0" class="absolute -top-2 -right-2 bg-white text-base-dark text-[10px] font-black w-6 h-6 rounded-full flex items-center justify-center shadow-lg border-2 border-gold animate-bounce">
+            {{ cartStore.totalItems }}
+            </span>
+        </button>
+    </div>
+  </div>
+</template>
+
+<style scoped>
+.font-serif {
+  font-family: 'Playfair Display', serif;
+}
+</style>

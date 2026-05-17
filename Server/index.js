@@ -91,7 +91,7 @@ const initDB = async () => {
         name VARCHAR(255) NOT NULL,
         description TEXT,
         price DECIMAL(10, 2) NOT NULL,
-        category ENUM('appetizer', 'main', 'dessert', 'drink') NOT NULL,
+        category ENUM('Foods', 'Drinks', 'Fruites', 'Pizza&Buger', 'Sweets', 'Vegeterain', 'Wines') NOT NULL,
         image_url VARCHAR(500),
         available BOOLEAN DEFAULT TRUE,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -101,16 +101,54 @@ const initDB = async () => {
     // Seed menu items if empty
     const [menuCount] = await db.execute('SELECT COUNT(*) as count FROM menu_items')
     if (menuCount[0].count === 0) {
-      await db.execute(`
-        INSERT INTO menu_items (name, description, price, category) VALUES
-        ('Truffle Arancini', 'Wild mushroom risotto balls, truffle aioli', 18.00, 'appetizer'),
-        ('Seared Scallops', 'Cauliflower purée, crispy pancetta', 24.00, 'appetizer'),
-        ('Wagyu Striploin', '12oz, smoked bone marrow, red wine jus', 65.00, 'main'),
-        ('Miso Black Cod', 'Coconut jasmine rice, bok choy', 42.00, 'main'),
-        ('Gold Leaf Soufflé', 'Dark chocolate, Grand Marnier', 22.00, 'dessert'),
-        ('Matcha Tiramisu', 'Espresso-soaked ladyfingers', 16.00, 'dessert')
-      `)
-      console.log('Sample menu items seeded')
+      const items = [
+        // FOODS
+        { name: 'Traditional Fish Amok', desc: 'Steamed fish in banana leaf with coconut curry', price: 12.00, cat: 'Foods', img: 'Foods/sharonang-fish-amok-921926_1920.jpg' },
+        { name: 'Savory Beef Lok Lak', desc: 'Classic stir-fried beef with lime and pepper', price: 14.00, cat: 'Foods', img: 'Foods/kan_chansathya-khmer-9024474_1920.jpg' },
+        { name: 'Khmer Red Curry', desc: 'Aromatic curry with chicken and sweet potatoes', price: 13.00, cat: 'Foods', img: 'Foods/kan_chansathya-khmer-food-3771719_1920.jpg' },
+        { name: 'Signature Wagyu', desc: 'Premium 12oz Wagyu striploin, bone marrow jus', price: 65.00, cat: 'Foods', img: 'Foods/alex-munsell-auIbTAcSH6E-unsplash.jpg' },
+        { name: 'Grilled Scallops', desc: 'Fresh scallops with garlic butter and herbs', price: 28.00, cat: 'Foods', img: 'Foods/pichara-g-I7PRofUoE-unsplash.jpg' },
+        { name: 'Herb Crusted Salmon', desc: 'Atlantic salmon with garden fresh herbs', price: 32.00, cat: 'Foods', img: 'Foods/alex-munsell-Yr4n8O_3UPc-unsplash.jpg' },
+        
+        // DRINKS
+        { name: 'Signature Mojito', desc: 'Fresh mint, lime, and premium white rum', price: 9.00, cat: 'Drinks', img: 'Drinks/rodion-kutsaiev-x4z7GiV5_-0-unsplash.jpg' },
+        { name: 'Cold Brew Fusion', desc: 'Specialty coffee with a hint of vanilla bean', price: 6.50, cat: 'Drinks', img: 'Drinks/kobby-mendez-xBFTjrMIC0c-unsplash.jpg' },
+        { name: 'Citrus Sparkler', desc: 'Zesty blend of orange, lemon, and soda', price: 5.00, cat: 'Drinks', img: 'Drinks/ash-edmonds-fsI-_MRsic0-unsplash.jpg' },
+        { name: 'Berry Refresher', desc: 'Mixed berries with sparkling mineral water', price: 7.00, cat: 'Drinks', img: 'Drinks/svitlana-vexxZA_JNso-unsplash.jpg' },
+        { name: 'Tropical Smoothie', desc: 'Mango, pineapple, and coconut cream blend', price: 8.50, cat: 'Drinks', img: 'Drinks/clovis-wood-iUtcVxqxkPk-unsplash.jpg' },
+
+        // FRUITES
+        { name: 'Dragon Fruit Platter', desc: 'Exotic red and white pitaya selection', price: 10.00, cat: 'Fruites', img: 'Fruites/jonas-kakaroto-5JQH9Iqnm9o-unsplash.jpg' },
+        { name: 'Summer Fruit Medley', desc: 'Fresh seasonal berries and stone fruits', price: 12.00, cat: 'Fruites', img: 'Fruites/brooke-lark-1Rm9GLHV0UA-unsplash.jpg' },
+        { name: 'Exotic Papaya', desc: 'Sun-ripened local papaya with lime squeeze', price: 8.00, cat: 'Fruites', img: 'Fruites/jo-sonn-zeFy-oCUhV8-unsplash.jpg' },
+        { name: 'Citrus Collection', desc: 'Zesty assortment of local citrus fruits', price: 9.50, cat: 'Fruites', img: 'Fruites/arturrro-GdTLaWamFHw-unsplash.jpg' },
+
+        // PIZZA & BUGER
+        { name: 'Truffle Masterpiece', desc: 'Black truffle, wagyu beef, caramelized onions', price: 22.00, cat: 'Pizza&Buger', img: 'Pizza&Buger/martinquijandria-big-2530144_1920.jpg' },
+        { name: 'Artisanal Margherita', desc: 'Buffalo mozzarella, fresh basil, San Marzano', price: 18.00, cat: 'Pizza&Buger', img: 'Pizza&Buger/joshuemd-pizza-329523_1920.jpg' },
+        { name: 'Pepperoni Feast', desc: 'Double-cured pepperoni and spicy chili honey', price: 20.00, cat: 'Pizza&Buger', img: 'Pizza&Buger/hoaluu-pizza-2589569_1920.jpg' },
+        { name: 'Garden Pizza', desc: 'Fresh farm vegetables and ricotta cheese', price: 17.00, cat: 'Pizza&Buger', img: 'Pizza&Buger/engin_akyurt-pizza-5661748_1920.jpg' },
+
+        // SWEETS
+        { name: 'Gold Leaf Matcha', desc: 'Matcha sponge, velvet cream, 24k gold leaf', price: 12.00, cat: 'Sweets', img: 'Sweets/pexels-blueberries-1867398_1920.jpg' },
+        { name: 'Daily Cupcake', desc: 'Handcrafted daily signature cupcake selection', price: 6.00, cat: 'Sweets', img: 'Sweets/cegoh-cupcakes-1133146_1920.jpg' },
+        { name: 'Velvet Pancakes', desc: 'Fluffy pancakes with maple and berries', price: 14.00, cat: 'Sweets', img: 'Sweets/daria-yakovleva-pancakes-2139844_1920.jpg' },
+        { name: 'Chocolate Decadence', desc: 'Rich dark chocolate cake with ganache', price: 11.00, cat: 'Sweets', img: 'Sweets/daria-yakovleva-cake-1971552_1920.jpg' },
+
+        // VEGETERAIN
+        { name: 'Quinoa Garden', desc: 'Organic quinoa, avocado, and garden herbs', price: 15.00, cat: 'Vegeterain', img: 'Vegeterain/joseph-gonzalez-QaGDmf5tMiE-unsplash.jpg' },
+        { name: 'Roasted Harvest', desc: 'Seasonal vegetables with balsamic reduction', price: 14.00, cat: 'Vegeterain', img: 'Vegeterain/ella-olsson-mmnKI8kMxpc-unsplash.jpg' },
+        { name: 'Avocado Toast Luxe', desc: 'Sourdough, poached egg, and microgreens', price: 13.00, cat: 'Vegeterain', img: 'Vegeterain/brooke-lark-jUPOXXRNdcA-unsplash.jpg' },
+
+        // WINES
+        { name: 'Vintage Cabernet', desc: 'Full-bodied red, notes of oak and cherry', price: 65.00, cat: 'Wines', img: 'Wines/matthieu-joannon-6ciLddToTgM-unsplash.jpg' },
+        { name: 'Reserve Chardonnay', desc: 'Crisp white with buttery finish and vanilla', price: 58.00, cat: 'Wines', img: 'Wines/kevin-kelly-PPneSBqfCCU-unsplash.jpg' },
+        { name: 'Sparkling Rose', desc: 'Elegant bubbles with hints of wild berry', price: 72.00, cat: 'Wines', img: 'Wines/aesop-wines-wS7f61WuRZk-unsplash.jpg' }
+      ];
+
+      const values = items.map(i => `('${i.name.replace(/'/g, "''")}', '${i.desc.replace(/'/g, "''")}', ${i.price}, '${i.cat}', '${i.img}')`).join(',');
+      await db.execute(`INSERT INTO menu_items (name, description, price, category, image_url) VALUES ${values}`);
+      console.log('Complete menu assets seeded');
     }
   } catch (error) {
     console.error('Database initialization failed:', error.message)
@@ -428,4 +466,52 @@ app.get('/api/admin/reservations', authenticateToken, isAdmin, async (req, res) 
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`)
+})
+
+// Review routes
+app.post('/api/reviews', authenticateToken, async (req, res) => {
+  const { menuItemId, rating, comment, isFavorite } = req.body
+  const userId = req.user.id
+
+  try {
+    // Check if review already exists for this user and menu item
+    const [existing] = await db.execute('SELECT * FROM reviews WHERE menu_item_id = ? AND user_id = ?', [menuItemId, userId])
+
+    if (existing.length > 0) {
+      // Update existing review
+      await db.execute('UPDATE reviews SET rating = ?, comment = ?, is_favorite = ?, updated_at = CURRENT_TIMESTAMP WHERE menu_item_id = ? AND user_id = ?', [rating, comment, isFavorite, menuItemId, userId])
+      res.json({ message: 'Review updated successfully' })
+    } else {
+      // Create new review
+      await db.execute('INSERT INTO reviews (menu_item_id, user_id, rating, comment, is_favorite) VALUES (?, ?, ?, ?, ?)', [menuItemId, userId, rating, comment, isFavorite])
+      res.status(201).json({ message: 'Review created successfully' })
+    }
+  } catch (error) {
+    console.error('Error handling review:', error)
+    res.status(500).json({ message: 'Error processing review' })
+  }
+})
+
+app.get('/api/reviews/menu/:menuItemId', async (req, res) => {
+  const { menuItemId } = req.params
+
+  try {
+    const [rows] = await db.execute('SELECT r.*, u.name as user_name FROM reviews r JOIN users u ON r.user_id = u.id WHERE r.menu_item_id = ? ORDER BY r.created_at DESC', [menuItemId])
+    res.json(rows)
+  } catch (error) {
+    console.error('Error fetching reviews:', error)
+    res.status(500).json({ message: 'Error fetching reviews' })
+  }
+})
+
+app.get('/api/reviews/user', authenticateToken, async (req, res) => {
+  const userId = req.user.id
+
+  try {
+    const [rows] = await db.execute('SELECT r.*, mi.name as menu_item_name FROM reviews r JOIN menu_items mi ON r.menu_item_id = mi.id WHERE r.user_id = ? ORDER BY r.created_at DESC', [userId])
+    res.json(rows)
+  } catch (error) {
+    console.error('Error fetching user reviews:', error)
+    res.status(500).json({ message: 'Error fetching user reviews' })
+  }
 })

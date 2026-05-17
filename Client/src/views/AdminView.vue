@@ -3,8 +3,18 @@ import { Settings, Users, Calendar, BarChart3, Loader2 } from 'lucide-vue-next'
 import { ref, onMounted } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 
+interface Reservation {
+  id: number
+  name: string
+  email: string
+  date: string
+  time: string
+  guests: number
+  status: 'pending' | 'confirmed' | 'cancelled'
+}
+
 const authStore = useAuthStore()
-const reservations = ref([])
+const reservations = ref<Reservation[]>([])
 const isLoading = ref(true)
 const error = ref('')
 
@@ -25,7 +35,6 @@ onMounted(async () => {
   }
 })
 
-const pendingCount = ref(0) // Logic to count pending can be added
 </script>
 
 <template>

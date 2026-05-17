@@ -1,279 +1,455 @@
 <script setup lang="ts">
-import { ChevronRight, Play, Award, GlassWater, Utensils, Clock, MapPin, Star, Facebook, Instagram, Youtube, Send } from 'lucide-vue-next'
+import { ref } from 'vue'
+import {
+  ArrowUpRight,
+  Award,
+  CalendarCheck,
+  ChefHat,
+  Clock,
+  Facebook,
+  Instagram,
+  MapPin,
+  Quote,
+  Send,
+  Sparkles,
+  Star,
+  Utensils,
+  X,
+  Youtube,
+} from 'lucide-vue-next'
 import { useAuthStore } from '@/stores/auth'
 import LoginCard from '@/components/LoginCard.vue'
 
 const authStore = useAuthStore()
+const selectedGalleryImage = ref<string | null>(null)
 
 const signatureDishes = [
   {
-    name: 'Khmer Amok Fusion',
-    description: 'Traditional fish amok with a modern truffle twist. A symphony of flavors from the heart of Cambodia.',
+    name: 'Signature Amok',
+    category: 'Chef Tasting',
+    description: 'River fish custard, kaffir lime, young coconut cream, and a warm Kampot pepper finish.',
     price: '$32',
-    image: '/src/assets/pictures/Foods/sharonang-fish-amok-921926_1920.jpg'
+    image: new URL('../assets/pictures/Foods/sharonang-fish-amok-921926_1920.jpg', import.meta.url).href,
   },
   {
-    name: 'Wagyu Lok Lak',
-    description: 'Premium Wagyu beef prepared with authentic Kampot pepper and a glaze that melts on the tongue.',
-    price: '$45',
-    image: '/src/assets/pictures/Foods/alex-munsell-auIbTAcSH6E-unsplash.jpg'
+    name: 'Golden Prawn Garden',
+    category: 'Seafood',
+    description: 'Charred prawns over herbs, citrus oil, toasted aromatics, and a bright tamarind glaze.',
+    price: '$38',
+    image: new URL('../assets/pictures/Foods/casey-lee-awj7sRviVXo-unsplash.jpg', import.meta.url).href,
   },
   {
-    name: 'Silk Road Dessert',
-    description: 'Hand-crafted sweets inspired by ancient trade routes, using only the finest palm sugar and coconut.',
+    name: 'Velvet Berry Finale',
+    category: 'Dessert',
+    description: 'A delicate dessert service with berries, cream, soft pastry, and palm-sugar warmth.',
     price: '$18',
-    image: '/src/assets/pictures/Sweets/kanhaiskan-cambodian-cake-5887085_1920.jpg'
-  }
+    image: new URL('../assets/pictures/Sweets/pexels-blueberries-1867398_1920.jpg', import.meta.url).href,
+  },
+]
+
+const galleryImages = [
+  new URL('../assets/pictures/Foods/kan_chansathya-khmer-food-3771719_1920.jpg', import.meta.url).href,
+  new URL('../assets/pictures/Drinks/clovis-wood-iUtcVxqxkPk-unsplash.jpg', import.meta.url).href,
+  new URL('../assets/pictures/Wines/kevin-kelly-PPneSBqfCCU-unsplash.jpg', import.meta.url).href,
+  new URL('../assets/pictures/Foods/pichara-g-I7PRofUoE-unsplash.jpg', import.meta.url).href,
+  new URL('../assets/pictures/Sweets/kanhaiskan-cambodian-cake-5887085_1920.jpg', import.meta.url).href,
+  new URL('../assets/pictures/Vegeterain/davide-cantelli-jpkfc5_d-DI-unsplash.jpg', import.meta.url).href,
+]
+
+const testimonials = [
+  {
+    quote: 'A rare Phnom Penh dinner where every course felt cinematic, precise, and deeply personal.',
+    name: 'Sophea R.',
+    role: 'Private Dining Guest',
+  },
+  {
+    quote: 'The service moved like choreography. Quiet, warm, confident, and beautifully timed.',
+    name: 'Daniel K.',
+    role: 'Wine Pairing Guest',
+  },
+  {
+    quote: 'Modern Khmer flavors with a luxury mood. The chef table is absolutely worth booking.',
+    name: 'Malis V.',
+    role: 'Chef Table Guest',
+  },
 ]
 
 const socialLinks = [
   { name: 'Facebook', icon: Facebook, url: 'https://www.facebook.com/search/top?q=Phourn%20KoemSeang' },
   { name: 'Telegram', icon: Send, url: 'https://t.me/Ph_koemseang' },
-  { name: 'TikTok', icon: null, url: 'https://www.tiktok.com/@koemseang' },
   { name: 'Instagram', icon: Instagram, url: 'https://www.instagram.com/seang_kosciusko/' },
-  { name: 'YouTube', icon: Youtube, url: 'https://www.youtube.com/@PhournKoemseang' }
+  { name: 'YouTube', icon: Youtube, url: 'https://www.youtube.com/@PhournKoemseang' },
 ]
 </script>
 
 <template>
-  <div class="min-h-screen bg-base-dark text-white selection:bg-gold/30">
-    <!-- Hero Section / Banner Background -->
-    <section class="relative min-h-screen flex items-center justify-center overflow-hidden">
-      <!-- Background Image Layer -->
-      <div class="absolute inset-0 z-0">
-        <div class="absolute inset-0 bg-[url('@/assets/images/Home%20_%20Nekmak%20Modern%20Fusion%20(v2).png')] bg-cover bg-center scale-105 animate-slow-zoom"></div>
-        <div class="absolute inset-0 bg-gradient-to-r from-base-dark via-base-dark/70 to-transparent"></div>
-        <div class="absolute inset-0 bg-gradient-to-t from-base-dark via-transparent to-transparent"></div>
-      </div>
+  <div class="home-page min-h-screen bg-base-dark text-white selection:bg-gold/30">
+    <section class="hero-scene relative min-h-screen overflow-hidden">
+      <img
+        src="@/assets/pictures/Foods/pichara-g-I7PRofUoE-unsplash.jpg"
+        alt="Chef-led fine dining preparation at LokPa"
+        class="hero-image absolute inset-0 h-full w-full object-cover"
+      />
+      <div class="absolute inset-0 bg-[radial-gradient(circle_at_68%_30%,rgba(212,175,55,0.18),transparent_28%),linear-gradient(90deg,rgba(10,10,10,0.94),rgba(10,10,10,0.58)_48%,rgba(10,10,10,0.18))]"></div>
+      <div class="absolute inset-x-0 bottom-0 h-56 bg-gradient-to-t from-base-dark to-transparent"></div>
 
-      <div class="container mx-auto px-6 lg:px-16 relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-16 items-center pt-20">
-        <!-- Hero Content -->
-        <div class="space-y-8 max-w-2xl">
-          <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-gold/10 border border-gold/30 text-gold text-[10px] tracking-[0.3em] uppercase font-bold animate-fade-in">
-            <Award :size="14" />
-            <span>Nekmak Modern Fusion • Est. 2026</span>
+      <div class="relative z-10 container mx-auto px-6 lg:px-16 min-h-screen grid grid-cols-1 lg:grid-cols-[1.05fr_0.95fr] gap-12 items-center pt-28 pb-20">
+        <div class="max-w-4xl space-y-9">
+          <div class="reveal inline-flex items-center gap-3 border border-gold/30 bg-black/30 px-4 py-2 text-gold backdrop-blur-md">
+            <ChefHat class="h-4 w-4" />
+            <span class="text-[10px] font-black uppercase tracking-[0.35em]">Chef-Led Modern Khmer Tasting</span>
           </div>
-          
-          <h1 class="font-serif text-6xl md:text-8xl lg:text-[110px] leading-[0.85] text-white animate-slide-up">
-            Luxe <br />
-            <span class="italic text-gold">Dining</span>
-          </h1>
-          
-          <p class="text-lg md:text-xl text-text-subtle font-light leading-relaxed max-w-lg animate-slide-up-delay-1">
-            Indulge in an extraordinary culinary journey where heritage meets innovation. Every plate tells a story of passion and precision.
-          </p>
 
-          <div class="flex flex-wrap gap-6 items-center pt-4 animate-slide-up-delay-2">
-            <router-link 
-              v-if="authStore.isAuthenticated"
-              to="/menu" 
-              class="group relative px-10 py-4 bg-gold text-base-dark font-bold uppercase tracking-widest text-sm transition-all duration-500 overflow-hidden"
+          <div class="space-y-6">
+            <h1 class="reveal delay-1 font-serif text-6xl leading-[0.92] md:text-8xl lg:text-[118px]">
+              Elysium
+              <span class="block italic text-gold">Restaurant</span>
+            </h1>
+            <p class="reveal delay-2 max-w-2xl text-lg leading-relaxed text-white/72 md:text-xl">
+              A luxurious dining room guided by the chef's table: close-up flame, polished Cambodian flavor, warm gold lighting, and plates finished with quiet precision.
+            </p>
+          </div>
+
+          <div class="reveal delay-3 flex flex-wrap items-center gap-4">
+            <router-link
+              :to="authStore.isAuthenticated ? '/reservations' : { path: '/', hash: '#login' }"
+              class="cta-button group inline-flex items-center gap-3 bg-gold px-8 py-4 text-xs font-black uppercase tracking-[0.28em] text-base-dark"
             >
-              <span class="relative z-10 flex items-center gap-2">
-                Explore The Menu
-                <ChevronRight :size="18" class="group-hover:translate-x-1 transition-transform" />
-              </span>
-              <div class="absolute inset-0 bg-white scale-x-0 group-hover:scale-x-100 origin-left transition-transform duration-500"></div>
+              Reserve a Table
+              <CalendarCheck class="h-5 w-5 transition-transform duration-300 group-hover:translate-x-1" />
             </router-link>
-            
-            <router-link to="/experience" class="flex items-center gap-3 text-white hover:text-gold transition-colors duration-300 group">
-              <div class="p-3 rounded-full border border-white/20 group-hover:border-gold transition-colors">
-                <Play :size="16" fill="currentColor" />
-              </div>
-              <span class="text-sm font-bold uppercase tracking-widest">The Experience</span>
+            <router-link :to="authStore.isAuthenticated ? '/menu' : { path: '/', hash: '#login' }" class="group inline-flex items-center gap-3 border border-white/15 px-8 py-4 text-xs font-black uppercase tracking-[0.28em] text-white/85 transition-all duration-300 hover:border-gold hover:text-gold">
+              Explore Menu
+              <ArrowUpRight class="h-4 w-4 transition-transform duration-300 group-hover:-translate-y-1 group-hover:translate-x-1" />
             </router-link>
           </div>
 
-          <!-- Quick Info -->
-          <div class="grid grid-cols-2 md:grid-cols-3 gap-8 pt-12 animate-fade-in border-t border-white/10 max-w-xl">
-            <div class="space-y-1">
-              <div class="flex items-center gap-2 text-gold">
-                <Clock :size="14" />
-                <span class="text-[10px] uppercase tracking-wider font-bold">Hours</span>
-              </div>
-              <p class="text-xs text-text-subtle">18:00 - 23:00 Daily</p>
+          <div class="reveal delay-4 grid max-w-2xl grid-cols-3 gap-5 border-t border-white/10 pt-8">
+            <div>
+              <Clock class="mb-3 h-5 w-5 text-gold" />
+              <p class="text-[10px] uppercase tracking-[0.24em] text-white/45">Dinner</p>
+              <p class="mt-1 text-sm text-white/80">18:00 - 23:00</p>
             </div>
-            <div class="space-y-1">
-              <div class="flex items-center gap-2 text-gold">
-                <MapPin :size="14" />
-                <span class="text-[10px] uppercase tracking-wider font-bold">Location</span>
-              </div>
-              <p class="text-xs text-text-subtle">Phnom Penh, KH</p>
+            <div>
+              <MapPin class="mb-3 h-5 w-5 text-gold" />
+              <p class="text-[10px] uppercase tracking-[0.24em] text-white/45">Location</p>
+              <p class="mt-1 text-sm text-white/80">Phnom Penh</p>
             </div>
-            <div class="hidden md:block space-y-1">
-              <div class="flex items-center gap-2 text-gold">
-                <Star :size="14" />
-                <span class="text-[10px] uppercase tracking-wider font-bold">Rating</span>
-              </div>
-              <p class="text-xs text-text-subtle">4.9/5 Service</p>
+            <div>
+              <Star class="mb-3 h-5 w-5 fill-current text-gold" />
+              <p class="text-[10px] uppercase tracking-[0.24em] text-white/45">Rating</p>
+              <p class="mt-1 text-sm text-white/80">4.9 Service</p>
             </div>
           </div>
         </div>
 
-        <!-- Login Section (Only if not authenticated) -->
-        <div v-if="!authStore.isAuthenticated" class="lg:justify-self-end w-full max-w-md animate-fade-in-right">
+        <div v-if="authStore.isAuthenticated" class="relative hidden min-h-[620px] lg:block">
+          <div class="chef-panel absolute right-0 top-8 w-[74%] overflow-hidden border border-gold/25 bg-black/30 p-4 backdrop-blur-md">
+            <img src="@/assets/pictures/Foods/sharonang-fish-amok-921926_1920.jpg" alt="Chef signature dish" class="h-[420px] w-full object-cover" />
+            <div class="space-y-3 p-6">
+              <p class="text-[10px] font-black uppercase tracking-[0.35em] text-gold">Chef's Signature</p>
+              <h2 class="font-serif text-4xl">The Flame & Herb Ritual</h2>
+              <p class="text-sm leading-relaxed text-white/62">
+                Every evening begins at the chef counter, where local herbs, river fish, and warm coconut aromatics are composed into a polished tasting menu.
+              </p>
+            </div>
+          </div>
+
+          <div class="floating-note absolute bottom-16 left-0 max-w-xs border border-white/10 bg-base-dark/80 p-6 backdrop-blur-xl">
+            <Sparkles class="mb-4 h-6 w-6 text-gold" />
+            <p class="font-serif text-2xl">Cinematic plating, real ingredients, soft motion.</p>
+          </div>
+        </div>
+
+        <div v-if="!authStore.isAuthenticated" id="login" class="reveal delay-4 scroll-mt-28 lg:justify-self-end">
           <LoginCard />
         </div>
       </div>
+    </section>
 
-      <!-- Scroll Indicator -->
-      <div class="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-4 opacity-50 animate-bounce">
-        <span class="text-[10px] tracking-[0.3em] uppercase vertical-text">Scroll To Discover</span>
-        <div class="w-px h-12 bg-gold/50"></div>
+    <section class="relative overflow-hidden border-y border-white/5 bg-card-dark/30 py-24">
+      <div class="parallax-strip absolute inset-0 opacity-25"></div>
+      <div class="relative container mx-auto grid grid-cols-1 gap-8 px-6 lg:grid-cols-4 lg:px-16">
+        <div class="motion-stat">
+          <p class="font-serif text-5xl text-gold">12</p>
+          <p class="mt-2 text-xs uppercase tracking-[0.28em] text-white/50">Seasonal Courses</p>
+        </div>
+        <div class="motion-stat">
+          <p class="font-serif text-5xl text-gold">500+</p>
+          <p class="mt-2 text-xs uppercase tracking-[0.28em] text-white/50">Cellar Labels</p>
+        </div>
+        <div class="motion-stat">
+          <p class="font-serif text-5xl text-gold">3</p>
+          <p class="mt-2 text-xs uppercase tracking-[0.28em] text-white/50">Private Rooms</p>
+        </div>
+        <div class="motion-stat">
+          <p class="font-serif text-5xl text-gold">60fps</p>
+          <p class="mt-2 text-xs uppercase tracking-[0.28em] text-white/50">Smooth UI Feel</p>
+        </div>
       </div>
     </section>
 
-    <!-- Social Media Section -->
-    <section class="py-24 bg-card-dark/30 border-y border-white/5">
-      <div class="container mx-auto px-6 lg:px-16">
-        <div class="text-center mb-16 space-y-4">
-          <h2 class="font-serif text-3xl md:text-5xl italic text-gold">Follow Our Journey</h2>
-          <p class="text-text-subtle text-sm tracking-[0.2em] uppercase font-light">Stay connected for exclusive updates and culinary insights</p>
+    <section class="section-reveal container mx-auto px-6 py-28 lg:px-16">
+      <div class="mb-16 flex flex-col justify-between gap-8 md:flex-row md:items-end">
+        <div class="max-w-3xl space-y-5">
+          <p class="text-[10px] font-black uppercase tracking-[0.35em] text-gold">Exquisite Menu</p>
+          <h2 class="font-serif text-5xl md:text-7xl">Plates With Presence</h2>
+          <p class="text-lg leading-relaxed text-white/58">
+            Hover each card to reveal tasting details, quiet motion, and the kind of close-up food photography that makes the page feel alive.
+          </p>
         </div>
-        
-        <div class="flex flex-wrap justify-center gap-8 md:gap-16">
-          <a v-for="social in socialLinks" :key="social.name" :href="social.url" target="_blank" class="group flex flex-col items-center gap-4 transition-all duration-500 hover:-translate-y-2">
-            <div class="w-16 h-16 rounded-full border border-gold/20 flex items-center justify-center bg-base-dark group-hover:bg-gold group-hover:border-gold transition-all duration-500">
-              <component v-if="social.icon" :is="social.icon" class="w-6 h-6 text-gold group-hover:text-base-dark transition-colors" />
-              <!-- Custom TikTok Icon -->
-              <svg v-else-if="social.name === 'TikTok'" class="w-6 h-6 text-gold group-hover:text-base-dark transition-colors" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5" />
-              </svg>
+        <router-link :to="authStore.isAuthenticated ? '/menu' : { path: '/', hash: '#login' }" class="inline-flex items-center gap-3 text-xs font-black uppercase tracking-[0.28em] text-gold">
+          View Full Menu
+          <ArrowUpRight class="h-4 w-4" />
+        </router-link>
+      </div>
+
+      <div class="grid grid-cols-1 gap-8 md:grid-cols-3">
+        <article v-for="dish in signatureDishes" :key="dish.name" class="menu-tile group relative min-h-[540px] overflow-hidden border border-gold/15 bg-card-dark">
+          <img :src="dish.image" :alt="dish.name" class="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-110" />
+          <div class="absolute inset-0 bg-gradient-to-t from-base-dark via-base-dark/36 to-transparent"></div>
+          <div class="absolute inset-x-0 bottom-0 translate-y-10 p-7 transition-transform duration-500 group-hover:translate-y-0">
+            <div class="mb-5 flex items-center justify-between">
+              <span class="bg-gold px-4 py-2 text-[10px] font-black uppercase tracking-[0.24em] text-base-dark">{{ dish.category }}</span>
+              <span class="font-serif text-3xl text-gold">{{ dish.price }}</span>
             </div>
-            <span class="text-[10px] font-bold tracking-[0.3em] uppercase text-text-muted group-hover:text-gold transition-colors">{{ social.name }}</span>
+            <h3 class="font-serif text-4xl leading-tight">{{ dish.name }}</h3>
+            <p class="mt-4 max-h-0 overflow-hidden text-sm leading-relaxed text-white/68 transition-all duration-500 group-hover:max-h-28">
+              {{ dish.description }}
+            </p>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="section-reveal overflow-hidden bg-card-dark/25 py-28">
+      <div class="container mx-auto px-6 lg:px-16">
+        <div class="mb-14 max-w-2xl space-y-5">
+          <p class="text-[10px] font-black uppercase tracking-[0.35em] text-gold">Gallery Lightbox</p>
+          <h2 class="font-serif text-5xl md:text-7xl">A Dining Film In Frames</h2>
+        </div>
+
+        <div class="gallery-grid grid grid-cols-2 gap-4 md:grid-cols-4">
+          <button
+            v-for="(image, index) in galleryImages"
+            :key="image"
+            @click="selectedGalleryImage = image"
+            :class="['group relative overflow-hidden border border-white/10 bg-base-dark', index === 0 || index === 3 ? 'md:col-span-2 md:row-span-2' : '']"
+          >
+            <img :src="image" alt="LokPa gallery detail" class="h-full min-h-56 w-full object-cover transition-transform duration-700 group-hover:scale-110" loading="lazy" />
+            <div class="absolute inset-0 bg-black/25 opacity-0 transition-opacity duration-300 group-hover:opacity-100"></div>
+            <ArrowUpRight class="absolute right-5 top-5 h-5 w-5 text-gold opacity-0 transition-all duration-300 group-hover:opacity-100" />
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <section class="section-reveal relative overflow-hidden py-28">
+      <img src="@/assets/pictures/Wines/jeff-siepman-hK9hIPgF3QU-unsplash.jpg" alt="Wine pairing" class="absolute inset-0 h-full w-full object-cover opacity-25" />
+      <div class="absolute inset-0 bg-gradient-to-r from-base-dark via-base-dark/90 to-base-dark/50"></div>
+      <div class="relative container mx-auto grid grid-cols-1 gap-14 px-6 lg:grid-cols-[0.8fr_1.2fr] lg:px-16">
+        <div class="space-y-6">
+          <Award class="h-10 w-10 text-gold" />
+          <p class="text-[10px] font-black uppercase tracking-[0.35em] text-gold">Chef's Special</p>
+          <h2 class="font-serif text-5xl md:text-7xl">The Golden Hour Tasting</h2>
+        </div>
+        <div class="grid gap-6 md:grid-cols-3">
+          <div v-for="item in ['Flame seared river fish', 'Kampot pepper jus', 'Coconut blossom dessert']" :key="item" class="special-card border border-white/10 bg-black/30 p-7 backdrop-blur-md">
+            <Utensils class="mb-8 h-6 w-6 text-gold" />
+            <h3 class="font-serif text-2xl">{{ item }}</h3>
+            <p class="mt-4 text-sm leading-relaxed text-white/55">A quiet luxury course designed for slow conversation and warm evening light.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section-reveal container mx-auto px-6 py-28 lg:px-16">
+      <div class="mb-14 text-center">
+        <p class="text-[10px] font-black uppercase tracking-[0.35em] text-gold">Testimonials</p>
+        <h2 class="mt-5 font-serif text-5xl md:text-7xl">Guests Remember The Feeling</h2>
+      </div>
+
+      <div class="grid grid-cols-1 gap-6 md:grid-cols-3">
+        <article v-for="testimonial in testimonials" :key="testimonial.name" class="testimonial-card border border-gold/10 bg-card-dark/60 p-8">
+          <Quote class="mb-8 h-8 w-8 text-gold" />
+          <p class="min-h-28 text-lg leading-relaxed text-white/72">"{{ testimonial.quote }}"</p>
+          <div class="mt-8 border-t border-white/10 pt-5">
+            <p class="font-serif text-2xl text-white">{{ testimonial.name }}</p>
+            <p class="mt-1 text-[10px] uppercase tracking-[0.24em] text-gold">{{ testimonial.role }}</p>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="section-reveal container mx-auto px-6 pb-28 lg:px-16">
+      <div class="relative overflow-hidden border border-gold/20 bg-gold p-10 text-base-dark md:p-16">
+        <div class="relative z-10 flex flex-col justify-between gap-8 md:flex-row md:items-center">
+          <div class="max-w-2xl">
+            <p class="text-[10px] font-black uppercase tracking-[0.35em]">Private Chef Table</p>
+            <h2 class="mt-4 font-serif text-5xl md:text-7xl">Let the chef cook for your evening.</h2>
+          </div>
+          <router-link :to="authStore.isAuthenticated ? '/reservations' : { path: '/', hash: '#login' }" class="inline-flex items-center justify-center gap-3 bg-base-dark px-8 py-4 text-xs font-black uppercase tracking-[0.28em] text-gold transition-transform duration-300 hover:-translate-y-1">
+            Reserve a Table
+            <CalendarCheck class="h-5 w-5" />
+          </router-link>
+        </div>
+      </div>
+    </section>
+
+    <section class="border-y border-white/5 bg-card-dark/30 py-20">
+      <div class="container mx-auto flex flex-col items-center justify-between gap-10 px-6 text-center md:flex-row md:text-left lg:px-16">
+        <div>
+          <h2 class="font-serif text-4xl text-gold">LokPa Restaurant</h2>
+          <p class="mt-3 max-w-xl text-sm leading-relaxed text-white/55">A sleek dark-mode fine dining website experience with real photography, warm gold accents, and fluid micro-interactions.</p>
+        </div>
+        <div class="flex flex-wrap justify-center gap-4">
+          <a v-for="social in socialLinks" :key="social.name" :href="social.url" target="_blank" class="group flex h-12 w-12 items-center justify-center border border-gold/20 text-gold transition-all duration-300 hover:-translate-y-1 hover:bg-gold hover:text-base-dark" :aria-label="social.name">
+            <component :is="social.icon" class="h-5 w-5" />
           </a>
         </div>
       </div>
     </section>
 
-    <!-- Culinary Highlights Section -->
-    <section class="py-32 bg-base-dark relative overflow-hidden">
-      <div class="container mx-auto px-6 lg:px-16">
-        <div class="flex flex-col md:flex-row justify-between items-end gap-8 mb-20">
-          <div class="space-y-4 max-w-2xl">
-            <h2 class="font-serif text-4xl md:text-6xl">Culinary <span class="text-gold italic">Artistry</span></h2>
-            <p class="text-text-subtle text-lg font-light leading-relaxed">
-              Our menu is a curated selection of fusion masterpieces, blending the bold flavors of Southeast Asia with contemporary French techniques.
-            </p>
-          </div>
-          <router-link to="/menu" class="text-gold uppercase tracking-[0.2em] text-xs font-bold border-b border-gold/30 pb-2 hover:border-gold transition-all">
-            View Full Menu
-          </router-link>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-8 lg:gap-12">
-          <div v-for="(dish, index) in signatureDishes" :key="index" 
-               class="group relative space-y-6 animate-slide-up" :style="{ animationDelay: `${index * 200}ms` }">
-            <div class="relative aspect-[4/5] overflow-hidden bg-card-dark">
-              <img :src="dish.image" :alt="dish.name" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
-              <div class="absolute inset-0 bg-black/20 group-hover:bg-black/0 transition-colors duration-500"></div>
-              <div class="absolute top-4 right-4 bg-base-dark/80 backdrop-blur-md px-4 py-2 text-gold font-serif italic text-lg border border-gold/20">
-                {{ dish.price }}
-              </div>
-            </div>
-            <div class="space-y-2">
-              <h3 class="font-serif text-2xl group-hover:text-gold transition-colors">{{ dish.name }}</h3>
-              <p class="text-text-subtle text-sm leading-relaxed">{{ dish.description }}</p>
-            </div>
-          </div>
-        </div>
+    <Transition name="lightbox">
+      <div v-if="selectedGalleryImage" class="fixed inset-0 z-[120] flex items-center justify-center bg-black/85 p-5 backdrop-blur-md" @click.self="selectedGalleryImage = null">
+        <button class="absolute right-6 top-6 text-gold transition-colors hover:text-white" @click="selectedGalleryImage = null" aria-label="Close gallery image">
+          <X class="h-8 w-8" />
+        </button>
+        <img :src="selectedGalleryImage" alt="Selected LokPa gallery image" class="max-h-[86vh] max-w-[92vw] border border-gold/20 object-contain shadow-2xl shadow-black" />
       </div>
-    </section>
-
-    <!-- Experience Showcase -->
-    <section class="py-32 bg-card-dark/30 border-y border-white/5">
-      <div class="container mx-auto px-6 lg:px-16">
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
-          <div class="relative">
-            <div class="aspect-square bg-base-dark overflow-hidden border border-gold/20">
-              <img src="/src/assets/images/The%20Experience%20_%20Nekmak%20Modern%20Fusion.png" alt="Dining Room" class="w-full h-full object-cover opacity-80" />
-            </div>
-            <div class="absolute -bottom-10 -right-10 w-2/3 aspect-video bg-base-dark overflow-hidden border border-gold/20 hidden md:block">
-              <img src="/src/assets/pictures/Drinks/clovis-wood-iUtcVxqxkPk-unsplash.jpg" alt="Artisanal Cocktails" class="w-full h-full object-cover opacity-80" />
-            </div>
-          </div>
-          
-          <div class="space-y-8">
-            <div class="inline-block text-gold text-xs font-bold tracking-[0.3em] uppercase">The Atmosphere</div>
-            <h2 class="font-serif text-4xl md:text-5xl leading-tight">Beyond Just <br/><span class="text-gold italic">A Meal</span></h2>
-            <p class="text-text-subtle text-lg font-light leading-relaxed">
-              We believe that dining is an immersive art form. From the ambient lighting to the custom-curated soundtrack, every detail at Nekmak is designed to transport you to a world of refined elegance.
-            </p>
-            
-            <div class="grid grid-cols-2 gap-8 pt-4">
-              <div class="space-y-3">
-                <Utensils class="text-gold w-6 h-6" />
-                <h4 class="font-bold uppercase tracking-widest text-[10px]">Private Dining</h4>
-                <p class="text-xs text-text-muted leading-relaxed">Exclusive suites for intimate gatherings.</p>
-              </div>
-              <div class="space-y-3">
-                <GlassWater class="text-gold w-6 h-6" />
-                <h4 class="font-bold uppercase tracking-widest text-[10px]">Wine Cellar</h4>
-                <p class="text-xs text-text-muted leading-relaxed">Over 500 labels from prestigious vineyards.</p>
-              </div>
-            </div>
-            
-            <div class="pt-8">
-              <router-link to="/reservations" class="inline-flex items-center gap-4 text-white hover:text-gold transition-all group">
-                <span class="uppercase tracking-[0.2em] text-sm font-bold">Reserve Your Table</span>
-                <div class="w-12 h-px bg-gold/50 group-hover:w-20 transition-all duration-500"></div>
-              </router-link>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
+    </Transition>
   </div>
 </template>
 
 <style scoped>
-.animate-slow-zoom {
-  animation: slow-zoom 30s infinite alternate ease-in-out;
+.home-page {
+  scroll-behavior: smooth;
 }
 
-@keyframes slow-zoom {
-  from { transform: scale(1); }
-  to { transform: scale(1.15); }
+.font-serif {
+  font-family: 'Playfair Display', serif;
 }
 
-.animate-fade-in-right {
-  animation: fade-in-right 1.2s cubic-bezier(0.2, 0, 0.2, 1);
+.hero-image {
+  animation: hero-drift 28s ease-in-out infinite alternate;
+  transform-origin: center;
 }
 
-@keyframes fade-in-right {
-  from { opacity: 0; transform: translateX(50px); }
-  to { opacity: 1; transform: translateX(0); }
+.reveal {
+  opacity: 0;
+  animation: reveal-up 0.9s cubic-bezier(0.2, 0, 0.2, 1) forwards;
 }
 
-.vertical-text {
-  writing-mode: vertical-rl;
+.delay-1 { animation-delay: 0.12s; }
+.delay-2 { animation-delay: 0.24s; }
+.delay-3 { animation-delay: 0.36s; }
+.delay-4 { animation-delay: 0.48s; }
+
+.cta-button {
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 18px 50px rgba(212, 175, 55, 0.22);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
-.animate-fade-in {
-  animation: fade-in 1.5s ease-out forwards;
+.cta-button::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.5), transparent);
+  transform: translateX(-120%);
+  transition: transform 0.7s ease;
 }
 
-@keyframes fade-in {
-  from { opacity: 0; }
-  to { opacity: 1; }
+.cta-button:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 24px 70px rgba(212, 175, 55, 0.32);
 }
 
-.animate-slide-up {
-  animation: slide-up 1s cubic-bezier(0.2, 0, 0.2, 1) forwards;
+.cta-button:hover::after {
+  transform: translateX(120%);
 }
 
-@keyframes slide-up {
-  from { opacity: 0; transform: translateY(40px); }
+.chef-panel {
+  animation: float-panel 7s ease-in-out infinite;
+}
+
+.floating-note {
+  animation: float-panel 8s ease-in-out infinite reverse;
+}
+
+.parallax-strip {
+  background-image: url('@/assets/pictures/Foods/sharonang-fish-amok-921926_1920.jpg');
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+}
+
+.section-reveal {
+  animation: reveal-up linear both;
+  animation-timeline: view();
+  animation-range: entry 8% cover 32%;
+}
+
+.motion-stat,
+.special-card,
+.testimonial-card,
+.menu-tile {
+  transition: transform 0.35s ease, border-color 0.35s ease, background-color 0.35s ease;
+}
+
+.motion-stat:hover,
+.special-card:hover,
+.testimonial-card:hover {
+  transform: translateY(-8px);
+  border-color: rgba(212, 175, 55, 0.48);
+}
+
+.gallery-grid button {
+  min-height: 14rem;
+}
+
+.lightbox-enter-active,
+.lightbox-leave-active {
+  transition: opacity 0.25s ease;
+}
+
+.lightbox-enter-from,
+.lightbox-leave-to {
+  opacity: 0;
+}
+
+@keyframes hero-drift {
+  from { transform: scale(1.04) translate3d(0, 0, 0); }
+  to { transform: scale(1.14) translate3d(-2%, -1%, 0); }
+}
+
+@keyframes reveal-up {
+  from { opacity: 0; transform: translateY(42px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
-.animate-slide-up-delay-1 {
-  opacity: 0;
-  animation: slide-up 1s cubic-bezier(0.2, 0, 0.2, 1) 0.2s forwards;
+@keyframes float-panel {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-18px); }
 }
 
-.animate-slide-up-delay-2 {
-  opacity: 0;
-  animation: slide-up 1s cubic-bezier(0.2, 0, 0.2, 1) 0.4s forwards;
+@media (prefers-reduced-motion: reduce) {
+  .hero-image,
+  .chef-panel,
+  .floating-note,
+  .section-reveal,
+  .reveal {
+    animation: none;
+    opacity: 1;
+  }
+
+  .cta-button,
+  .menu-tile,
+  .special-card,
+  .testimonial-card,
+  .motion-stat {
+    transition: none;
+  }
 }
 </style>

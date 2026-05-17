@@ -1,0 +1,48 @@
+
+> lokpa-server@1.0.0 dev
+> nodemon index.js
+
+[33m[nodemon] 3.1.14[39m
+[33m[nodemon] to restart at any time, enter `rs`[39m
+[33m[nodemon] watching path(s): *.*[39m
+[33m[nodemon] watching extensions: js,mjs,cjs,json[39m
+[32m[nodemon] starting `node index.js`[39m
+--- Auth Config Check ---
+Port: 5001
+Google Client ID: Loaded
+Google Client ID ends with: ontent.com
+-------------------------
+Connected to MySQL database
+Server running on port 5001
+[31m[nodemon] app crashed - waiting for file changes before starting...[39m
+[32m[nodemon] restarting child process[39m
+[32m[nodemon] starting `node index.js`[39m
+--- Auth Config Check ---
+Port: 5001
+Google Client ID: Loaded
+Google Client ID ends with: ontent.com
+-------------------------
+Connected to MySQL database
+node:events:487
+      throw er; // Unhandled 'error' event
+      ^
+
+Error: listen EADDRINUSE: address already in use :::5001
+    at Server.setupListenHandle [as _listen2] (node:net:2008:16)
+    at listenInCluster (node:net:2065:12)
+    at Server.listen (node:net:2170:7)
+    at app.listen (/Users/macbook/Library/CloudStorage/GoogleDrive-koemseang.phoeurn@student.passerellesnumeriques.org/My Drive/Term 4/LokPa Restaurant Luxe Dining/Server/node_modules/express/lib/application.js:635:24)
+    at file:///Users/macbook/Library/CloudStorage/GoogleDrive-koemseang.phoeurn@student.passerellesnumeriques.org/My%20Drive/Term%204/LokPa%20Restaurant%20Luxe%20Dining/Server/index.js:467:5
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+Emitted 'error' event on Server instance at:
+    at emitErrorNT (node:net:2044:8)
+    at process.processTicksAndRejections (node:internal/process/task_queues:90:21) {
+  code: 'EADDRINUSE',
+  errno: -48,
+  syscall: 'listen',
+  address: '::',
+  port: 5001
+}
+
+Node.js v24.15.0
+[31m[nodemon] app crashed - waiting for file changes before starting...[39m

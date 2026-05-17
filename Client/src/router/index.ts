@@ -52,7 +52,15 @@ const router = createRouter({
       component: AuthCallback,
     },
   ],
-  scrollBehavior() {
+  scrollBehavior(to) {
+    if (to.hash) {
+      return {
+        el: to.hash,
+        behavior: 'smooth',
+        top: 96,
+      }
+    }
+
     return { top: 0 }
   },
 })

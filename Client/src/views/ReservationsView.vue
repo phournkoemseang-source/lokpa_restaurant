@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Calendar, Users, MessageSquare, CheckCircle2, AlertCircle, Phone } from 'lucide-vue-next'
+import { Users, CheckCircle2, AlertCircle, Phone } from 'lucide-vue-next'
 import { ref } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 
@@ -64,7 +64,7 @@ async function handleSubmit() {
   <div class="min-h-screen bg-base-dark text-white">
     <!-- Hero Banner -->
     <section class="relative h-[45vh] flex items-center justify-center overflow-hidden">
-      <div class="absolute inset-0 bg-[url('@/assets/Images/Reservations%20_%20Nekmak%20Modern%20Fusion.png')] bg-cover bg-center opacity-40 scale-105"></div>
+      <img src="@/assets/pictures/Wines/jeff-siepman-hK9hIPgF3QU-unsplash.jpg" alt="LokPa reservations" class="absolute inset-0 w-full h-full object-cover opacity-45 scale-105" />
       <div class="absolute inset-0 bg-gradient-to-b from-base-dark/80 via-transparent to-base-dark"></div>
       
       <div class="relative z-10 text-center space-y-4 px-6">

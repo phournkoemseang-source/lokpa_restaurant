@@ -31,7 +31,7 @@ const socialLinks = [
       <div class="grid grid-cols-1 md:grid-cols-3 gap-12">
         <!-- Brand -->
         <div class="space-y-6">
-          <h3 class="font-serif text-gold text-3xl italic">Nekmak</h3>
+          <h3 class="font-serif text-gold text-3xl italic">LokPa</h3>
           <p class="text-text-subtle text-sm leading-relaxed max-w-xs">
             Redefining modern fusion through architectural culinary experiences in the heart of Cambodia.
           </p>
@@ -75,9 +75,9 @@ const socialLinks = [
         <div class="space-y-4">
           <h4 class="text-xs tracking-[0.2em] uppercase text-text-muted font-medium">Connect</h4>
           <p class="text-white/80 text-sm">Phnom Penh, Cambodia</p>
-          <p class="text-white/80 text-sm hover:text-gold transition-colors">contact@nekmak.com</p>
+          <p class="text-white/80 text-sm hover:text-gold transition-colors">contact@lokpa.com</p>
           <p class="text-text-muted text-xs pt-4">
-            &copy; 2026 Nekmak Modern Fusion. <br/>
+            &copy; 2026 LokPa Restaurant. <br/>
             Designed for Phourn KoemSeang.
           </p>
         </div>

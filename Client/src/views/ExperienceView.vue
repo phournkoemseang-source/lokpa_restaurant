@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import { Star, Utensils, Music, Users } from 'lucide-vue-next'
+import { Utensils, Music, Users } from 'lucide-vue-next'
 </script>
 
 <template>
   <div class="min-h-screen bg-base-dark text-white">
     <!-- Hero Section -->
     <section class="relative h-[70vh] flex items-center justify-center overflow-hidden">
-      <div class="absolute inset-0 bg-[url('@/assets/Images/The%20Experience%20_%20Nekmak%20Modern%20Fusion.png')] bg-cover bg-center opacity-40"></div>
+      <img src="@/assets/pictures/Wines/kevin-kelly-PPneSBqfCCU-unsplash.jpg" alt="LokPa wine service" class="absolute inset-0 w-full h-full object-cover opacity-45" />
       <div class="absolute inset-0 bg-gradient-to-b from-base-dark/60 via-transparent to-base-dark"></div>
       
       <div class="relative z-10 text-center space-y-6 max-w-4xl px-6">
@@ -34,7 +34,7 @@ import { Star, Utensils, Music, Users } from 'lucide-vue-next'
           </ul>
         </div>
         <div class="aspect-video bg-card-dark border border-border-card overflow-hidden rounded-sm group">
-          <div class="w-full h-full bg-[url('@/assets/Images/Main%20-%20Menu%20Grid.png')] bg-cover bg-center group-hover:scale-105 transition-transform duration-700"></div>
+          <img src="@/assets/pictures/Foods/sharonang-fish-amok-921926_1920.jpg" alt="Culinary artistry" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
         </div>
       </div>
 
@@ -44,14 +44,14 @@ import { Star, Utensils, Music, Users } from 'lucide-vue-next'
           <Music class="w-12 h-12 text-gold" />
           <h2 class="font-serif text-4xl text-white">Ambiance & Sound</h2>
           <p class="text-text-subtle leading-relaxed text-lg">
-            The Nekmak experience extends beyond the palate. Our space is designed with minimalist elegance, featuring custom acoustics and a curated soundtrack that evolves from the soft morning light to the intimate evening glow.
+            The LokPa experience extends beyond the palate. Our space is designed with minimalist elegance, featuring custom acoustics and a curated soundtrack that evolves from the soft morning light to the intimate evening glow.
           </p>
           <p class="text-text-subtle leading-relaxed">
             From the velvet textures of our seating to the precisely calibrated lighting, every detail is engineered to heighten your sensory perception.
           </p>
         </div>
         <div class="lg:order-1 aspect-video bg-card-dark border border-border-card overflow-hidden rounded-sm group">
-          <div class="w-full h-full bg-[url('@/assets/Images/Home%20_%20Nekmak%20Modern%20Fusion%20(v2).png')] bg-cover bg-center group-hover:scale-105 transition-transform duration-700"></div>
+          <img src="@/assets/pictures/Drinks/clovis-wood-iUtcVxqxkPk-unsplash.jpg" alt="LokPa ambiance" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
         </div>
       </div>
 

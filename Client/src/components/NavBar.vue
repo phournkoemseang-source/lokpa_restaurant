@@ -1,12 +1,14 @@
 <script setup lang="ts">
-import { ShoppingCart, Menu, X, LogOut } from 'lucide-vue-next'
+import { ShoppingBag, Menu, X, LogOut } from 'lucide-vue-next'
 import { ref, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import { useCartStore } from '@/stores/cart'
 
 const route = useRoute()
 const router = useRouter()
 const authStore = useAuthStore()
+const cartStore = useCartStore()
 const isMobileMenuOpen = ref(false)
 
 const navLinks = computed(() => {
@@ -40,10 +42,10 @@ function handleLogout() {
 </script>
 
 <template>
-  <header class="sticky top-0 z-50 bg-base-dark/90 backdrop-blur-sm border-b border-border-card/30">
-    <nav class="container mx-auto px-6 lg:px-16 flex items-center justify-between h-16">
+  <header class="fixed top-0 left-0 right-0 z-50 px-4 pt-4">
+    <nav class="mx-auto flex h-16 max-w-7xl items-center justify-between border border-gold/15 bg-base-dark/72 px-5 shadow-2xl shadow-black/30 backdrop-blur-xl lg:px-8">
       <router-link to="/" class="font-serif text-gold text-xl italic font-bold tracking-wide hover:text-gold-light transition-colors">
-        Nekmak Modern Fusion
+        LokPa Restaurant
       </router-link>
 
       <!-- Desktop Navigation -->
@@ -70,22 +72,28 @@ function handleLogout() {
           </li>
         </ul>
         
-        <!-- Show logout button when authenticated -->
-        <button
-          v-if="authStore.isAuthenticated"
-          @click="handleLogout"
-          aria-label="Logout"
-          class="text-gold hover:text-gold-light transition-colors duration-300"
-        >
-          <LogOut :size="22" :stroke-width="1.5" />
-        </button>
-        <button
-          v-else
-          aria-label="Shopping cart"
-          class="text-gold hover:text-gold-light transition-colors duration-300"
-        >
-          <ShoppingCart :size="22" :stroke-width="1.5" />
-        </button>
+        <!-- Show logout/cart button -->
+        <div class="flex items-center gap-6">
+          <button
+            @click="cartStore.toggleCart()"
+            class="relative text-gold hover:text-gold-light transition-colors duration-300"
+            aria-label="Shopping cart"
+          >
+            <ShoppingBag :size="22" :stroke-width="1.5" />
+            <span v-if="cartStore.totalItems > 0" class="absolute -top-2 -right-2 bg-white text-base-dark text-[10px] font-black w-5 h-5 rounded-full flex items-center justify-center shadow-lg border border-gold">
+              {{ cartStore.totalItems }}
+            </span>
+          </button>
+
+          <button
+            v-if="authStore.isAuthenticated"
+            @click="handleLogout"
+            aria-label="Logout"
+            class="text-gold hover:text-gold-light transition-colors duration-300"
+          >
+            <LogOut :size="22" :stroke-width="1.5" />
+          </button>
+        </div>
       </div>
 
       <!-- Mobile Menu Button -->
@@ -102,7 +110,7 @@ function handleLogout() {
     <!-- Mobile Navigation -->
     <div
       v-show="isMobileMenuOpen"
-      class="md:hidden bg-base-dark/95 backdrop-blur-sm border-t border-border-card/30"
+      class="mx-auto mt-2 max-w-7xl border border-gold/15 bg-base-dark/95 backdrop-blur-xl md:hidden"
     >
       <ul class="flex flex-col py-4">
         <li v-for="link in navLinks" :key="link.path">

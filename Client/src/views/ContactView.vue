@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import { MapPin, Phone, Mail, Clock, Instagram, Facebook, Twitter } from 'lucide-vue-next'
+import { MapPin, Phone, Mail, Instagram, Facebook, Twitter } from 'lucide-vue-next'
 </script>
 
 <template>
   <div class="min-h-screen bg-base-dark text-white">
     <!-- Header -->
     <section class="relative h-[50vh] flex items-center justify-center overflow-hidden">
-      <div class="absolute inset-0 bg-[url('@/assets/Images/Contact%20&%20Location%20_%20NekMak%20Luxe%20Dining.png')] bg-cover bg-center opacity-40"></div>
+      <img src="@/assets/pictures/Drinks/katherine-sousa-ln2R1wJ8TCM-unsplash.jpg" alt="LokPa contact and location" class="absolute inset-0 w-full h-full object-cover opacity-45" />
       <div class="absolute inset-0 bg-gradient-to-b from-base-dark/60 via-transparent to-base-dark"></div>
       
       <div class="relative z-10 text-center space-y-4">
@@ -35,7 +35,7 @@ import { MapPin, Phone, Mail, Clock, Instagram, Facebook, Twitter } from 'lucide
               </div>
               <div class="flex gap-4">
                 <Mail class="w-6 h-6 text-gold shrink-0" />
-                <p class="text-text-subtle text-lg">concierge@nekmak.com</p>
+                <p class="text-text-subtle text-lg">concierge@lokpa.com</p>
               </div>
             </div>
           </div>
