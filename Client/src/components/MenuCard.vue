@@ -1,8 +1,6 @@
 <script setup lang="ts">
-import { Heart, Star } from 'lucide-vue-next'
+import { Star } from 'lucide-vue-next'
 import { useCartStore } from '@/stores/cart'
-import { useAuthStore } from '@/stores/auth'
-import { onMounted, ref, watch } from 'vue'
 
 const props = defineProps<{
   item: {
@@ -13,6 +11,8 @@ const props = defineProps<{
     image_url: string
     imageSrc?: string
     category: string
+    badge?: string
+    rating?: number
   }
 }>()
 
@@ -21,73 +21,11 @@ defineEmits<{
 }>()
 
 const cartStore = useCartStore()
-const authStore = useAuthStore()
-const isFavorite = ref(false)
-const rating = ref(0)
-const comment = ref('')
-const status = ref('')
-
-const storageKey = () => `lokpa-menu-feedback-${props.item.id}`
 
 const getImageUrl = () => {
   if (props.item.imageSrc) return props.item.imageSrc
   if (!props.item.image_url) return '/placeholder-food.jpg'
   return new URL(`../assets/pictures/${props.item.image_url}`, import.meta.url).href
-}
-
-const loadFeedback = () => {
-  const saved = localStorage.getItem(storageKey())
-  if (!saved) return
-
-  try {
-    const feedback = JSON.parse(saved)
-    isFavorite.value = Boolean(feedback.isFavorite)
-    rating.value = Number(feedback.rating) || 0
-    comment.value = feedback.comment || ''
-  } catch {
-    localStorage.removeItem(storageKey())
-  }
-}
-
-const persistFeedback = async () => {
-  const feedback = {
-    isFavorite: isFavorite.value,
-    rating: rating.value,
-    comment: comment.value,
-  }
-
-  localStorage.setItem(storageKey(), JSON.stringify(feedback))
-  status.value = 'Saved'
-
-  if (!authStore.token || (!rating.value && !comment.value && !isFavorite.value)) return
-
-  try {
-    await fetch('http://localhost:5001/api/reviews', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${authStore.token}`,
-      },
-      body: JSON.stringify({
-        menuItemId: props.item.id,
-        rating: rating.value || 1,
-        comment: comment.value,
-        isFavorite: isFavorite.value,
-      }),
-    })
-  } catch {
-    status.value = 'Saved on this device'
-  }
-}
-
-const setRating = (newRating: number) => {
-  rating.value = newRating
-  persistFeedback()
-}
-
-const toggleFavorite = () => {
-  isFavorite.value = !isFavorite.value
-  persistFeedback()
 }
 
 const addItem = () => {
@@ -99,68 +37,48 @@ const addItem = () => {
     imageSrc: props.item.imageSrc,
   })
 }
-
-onMounted(loadFeedback)
-watch(() => props.item.id, loadFeedback)
 </script>
 
 <template>
-  <article class="group bg-card-dark/70 border border-gold/15 hover:border-gold/50 transition-all duration-500 overflow-hidden shadow-2xl">
-    <button class="relative block w-full aspect-[1.18] overflow-hidden text-left" @click="$emit('show-detail')">
+  <article class="menu-card group flex min-h-[620px] flex-col border border-gold/15 bg-card-dark/80 p-6 shadow-2xl transition-all duration-500 hover:-translate-y-2 hover:border-gold/55">
+    <button class="relative block w-full overflow-hidden text-left" @click="$emit('show-detail')">
       <img
         :src="getImageUrl()"
         :alt="item.name"
-        class="w-full h-full object-cover transition-transform duration-[1.2s] group-hover:scale-110"
+        class="h-72 w-full object-cover transition-transform duration-[1.1s] group-hover:scale-110"
         loading="lazy"
       />
-      <div class="absolute inset-0 bg-gradient-to-t from-base-dark/50 via-transparent to-transparent"></div>
-      <span class="absolute top-4 right-4 bg-gold/90 text-base-dark text-[10px] font-black uppercase tracking-[0.22em] px-4 py-2">
-        {{ item.category }}
+      <div class="absolute inset-0 bg-gradient-to-t from-base-dark/45 via-transparent to-transparent"></div>
+      <span
+        v-if="item.badge"
+        class="absolute right-5 top-5 border border-gold/45 bg-base-dark/70 px-4 py-3 text-[10px] font-bold uppercase tracking-[0.18em] text-gold backdrop-blur-sm"
+      >
+        {{ item.badge }}
       </span>
     </button>
 
-    <div class="p-6 md:p-8 space-y-6">
-      <div class="flex items-start justify-between gap-4">
-        <button class="text-left min-w-0" @click="$emit('show-detail')">
-          <h3 class="font-serif text-3xl md:text-4xl text-white leading-tight group-hover:text-gold transition-colors">
+    <div class="flex flex-1 flex-col pt-8">
+      <div class="flex items-start justify-between gap-5">
+        <button class="min-w-0 text-left" @click="$emit('show-detail')">
+          <h3 class="font-serif text-4xl leading-tight text-white transition-colors duration-300 group-hover:text-gold md:text-5xl">
             {{ item.name }}
           </h3>
         </button>
-        <span class="font-serif text-2xl md:text-3xl text-gold whitespace-nowrap">${{ item.price.toFixed(2) }}</span>
+        <span class="whitespace-nowrap font-serif text-2xl text-gold">${{ item.price.toFixed(2) }}</span>
       </div>
 
-      <div class="flex items-center justify-between gap-4">
-        <div class="flex items-center gap-1" aria-label="Rate this dish">
-          <button v-for="n in 5" :key="n" @click="setRating(n)" class="p-1 hover:scale-110 transition-transform" :aria-label="`Rate ${n} star`">
-            <Star class="w-5 h-5" :class="n <= rating ? 'text-gold fill-current' : 'text-white/35'" />
-          </button>
-        </div>
-
-        <button
-          @click="toggleFavorite"
-          class="p-2 border border-white/10 hover:border-gold/50 transition-colors"
-          :aria-label="isFavorite ? 'Remove favorite' : 'Add favorite'"
-        >
-          <Heart class="w-5 h-5" :class="isFavorite ? 'text-gold fill-current' : 'text-white/60'" />
-        </button>
+      <div class="mt-5 flex items-center gap-2 text-gold">
+        <Star class="h-5 w-5 fill-current" />
+        <span class="text-sm">{{ (item.rating || 4.8).toFixed(1) }}</span>
       </div>
 
-      <p class="text-text-subtle text-sm leading-relaxed line-clamp-2">
+      <p class="mt-7 line-clamp-3 text-lg leading-8 text-white/68">
         {{ item.description }}
       </p>
 
-      <textarea
-        v-model="comment"
-        @blur="persistFeedback"
-        rows="2"
-        placeholder="Leave your note..."
-        class="w-full bg-base-dark/70 border border-gold/10 focus:border-gold/60 px-4 py-3 text-sm text-white placeholder:text-text-muted focus:outline-none resize-none"
-      ></textarea>
-      <p v-if="status" class="text-[10px] text-gold/80 uppercase tracking-[0.2em]">{{ status }}</p>
-
       <button
         @click="addItem"
-        class="w-full bg-gold text-base-dark py-4 font-black uppercase tracking-[0.35em] text-xs hover:bg-white transition-all duration-500 active:scale-[0.98]"
+        class="mt-auto w-full bg-gold py-5 text-xs font-black uppercase tracking-[0.35em] text-base-dark transition-all duration-500 hover:bg-white active:scale-[0.98]"
       >
         Add To Cart
       </button>
@@ -173,9 +91,15 @@ watch(() => props.item.id, loadFeedback)
   font-family: 'Playfair Display', serif;
 }
 
-.line-clamp-2 {
+.menu-card {
+  background-image:
+    radial-gradient(circle at 15% 0%, rgba(212, 175, 55, 0.08), transparent 30%),
+    linear-gradient(145deg, rgba(255, 255, 255, 0.035), transparent 45%);
+}
+
+.line-clamp-3 {
   display: -webkit-box;
-  -webkit-line-clamp: 2;
+  -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
