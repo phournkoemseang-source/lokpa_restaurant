@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Users, CheckCircle2, AlertCircle, Phone } from 'lucide-vue-next'
+import { Users, CheckCircle2, AlertCircle, Phone, CalendarCheck, Clock, Sparkles } from 'lucide-vue-next'
 import { ref } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 
@@ -63,24 +63,53 @@ async function handleSubmit() {
 <template>
   <div class="min-h-screen bg-base-dark text-white">
     <!-- Hero Banner -->
-    <section class="relative h-[45vh] flex items-center justify-center overflow-hidden">
-      <img src="@/assets/pictures/Wines/jeff-siepman-hK9hIPgF3QU-unsplash.jpg" alt="LokPa reservations" class="absolute inset-0 w-full h-full object-cover opacity-45 scale-105" />
-      <div class="absolute inset-0 bg-gradient-to-b from-base-dark/80 via-transparent to-base-dark"></div>
-      
-      <div class="relative z-10 text-center space-y-4 px-6">
-        <h1 class="font-serif text-5xl md:text-7xl text-gold italic">Reservations</h1>
-        <p class="text-gold tracking-[0.4em] uppercase text-[10px] font-bold">Secure Your Table at the Fusion</p>
+    <section class="relative min-h-[78vh] overflow-hidden">
+      <img
+        src="@/assets/pictures/EroupFoods/Wines/jeff-siepman-hK9hIPgF3QU-unsplash.jpg"
+        alt="NekMak premium restaurant reservation banner"
+        class="absolute inset-0 h-full w-full object-cover"
+      />
+      <div class="absolute inset-0 bg-[linear-gradient(180deg,rgba(10,10,10,0.58),rgba(10,10,10,0.42)_38%,#0A0A0A_96%),linear-gradient(90deg,rgba(10,10,10,0.78),rgba(10,10,10,0.18)_52%,rgba(10,10,10,0.74))]"></div>
+
+      <div class="relative z-10 mx-auto flex min-h-[78vh] max-w-7xl flex-col justify-center px-6 pb-24 pt-32 text-center lg:px-16">
+        <p class="text-[10px] font-black uppercase tracking-[0.45em] text-gold">NekMak Restaurant</p>
+        <h1 class="mx-auto mt-6 max-w-4xl font-serif text-5xl leading-tight text-white md:text-7xl">
+          Online Reservation
+          <span class="block text-gold-light">Book a Table</span>
+        </h1>
+        <p class="mx-auto mt-6 max-w-2xl text-base leading-8 text-white/72 md:text-lg">
+          Reserve your table for modern Khmer and European fusion dining in Phnom Penh. Our team prepares a calm, premium evening for private dinners, celebrations, and chef-led experiences.
+        </p>
+
+        <div class="mx-auto mt-12 grid w-full max-w-5xl gap-5 md:grid-cols-3">
+          <div class="border border-gold/20 bg-base-dark/72 p-6 text-left shadow-2xl shadow-black/30 backdrop-blur-md">
+            <CalendarCheck class="h-7 w-7 text-gold" />
+            <p class="mt-5 text-[10px] font-black uppercase tracking-[0.28em] text-gold">Simple Booking</p>
+            <p class="mt-2 text-sm leading-6 text-white/65">Choose date, time, guests, and special requests in one clean form.</p>
+          </div>
+          <div class="border border-gold/20 bg-base-dark/72 p-6 text-left shadow-2xl shadow-black/30 backdrop-blur-md">
+            <Sparkles class="h-7 w-7 text-gold" />
+            <p class="mt-5 text-[10px] font-black uppercase tracking-[0.28em] text-gold">Premium Dining</p>
+            <p class="mt-2 text-sm leading-6 text-white/65">Ideal for birthdays, business hosting, wine pairing, and chef events.</p>
+          </div>
+          <div class="border border-gold/20 bg-base-dark/72 p-6 text-left shadow-2xl shadow-black/30 backdrop-blur-md">
+            <Clock class="h-7 w-7 text-gold" />
+            <p class="mt-5 text-[10px] font-black uppercase tracking-[0.28em] text-gold">Daily Service</p>
+            <p class="mt-2 text-sm leading-6 text-white/65">Open Monday - Sunday, 6:00 AM - 12:00 PM.</p>
+          </div>
+        </div>
       </div>
     </section>
 
-    <section class="container mx-auto px-6 lg:px-16 py-24">
-      <div class="max-w-4xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-16">
+    <section class="container mx-auto px-6 py-24 lg:px-16">
+      <div class="mx-auto -mt-36 grid max-w-6xl grid-cols-1 gap-10 lg:grid-cols-[1.35fr_0.65fr]">
         
         <!-- Booking Form -->
-        <div class="lg:col-span-2 space-y-10">
-          <div class="space-y-2">
-            <h2 class="font-serif text-3xl text-white">Booking Details</h2>
-            <p class="text-text-subtle text-sm">Please provide your preferred date and requirements.</p>
+        <div class="space-y-10 border border-gold/20 bg-card-dark/95 p-7 shadow-2xl shadow-black/50 backdrop-blur-md md:p-10">
+          <div class="space-y-3 text-center">
+            <p class="text-[10px] font-black uppercase tracking-[0.35em] text-gold">Reservation form</p>
+            <h2 class="font-serif text-4xl text-white">Book A Table</h2>
+            <p class="mx-auto max-w-xl text-sm leading-7 text-text-subtle">Please provide your preferred date and requirements. NekMak will prepare your table for a polished dining experience.</p>
           </div>
 
           <!-- Success Message -->
@@ -187,8 +216,8 @@ async function handleSubmit() {
         </div>
 
         <!-- Sidebar Info -->
-        <div class="space-y-12">
-          <div class="p-8 bg-card-dark border border-border-card space-y-6">
+        <div class="space-y-8">
+          <div class="border border-border-card bg-card-dark/95 p-8 shadow-2xl shadow-black/40 backdrop-blur-md">
             <h3 class="font-serif text-2xl text-white">Dining Policy</h3>
             <ul class="space-y-4 text-xs tracking-widest leading-relaxed text-text-subtle">
               <li>• SMART ELEGANT DRESS CODE</li>
@@ -202,7 +231,7 @@ async function handleSubmit() {
             <h4 class="text-gold text-[10px] tracking-widest uppercase font-bold">Need Assistance?</h4>
             <div class="flex items-center gap-3">
               <Phone class="w-5 h-5 text-gold" />
-              <span class="text-xl font-serif">+1 (212) 555-LUXE</span>
+              <span class="text-xl font-serif">+855 (0) 23 999 888</span>
             </div>
             <p class="text-text-muted text-xs">Our concierge is available 24/7 for bespoke arrangements.</p>
           </div>

@@ -8,6 +8,7 @@ export interface CartItem {
   quantity: number
   image_url: string
   imageSrc?: string
+  menuItemId?: number
 }
 
 export const useCartStore = defineStore('cart', () => {
@@ -17,12 +18,13 @@ export const useCartStore = defineStore('cart', () => {
   const totalItems = computed(() => items.value.reduce((sum, item) => sum + item.quantity, 0))
   const totalPrice = computed(() => items.value.reduce((sum, item) => sum + (item.price * item.quantity), 0))
 
-  function addToCart(item: Omit<CartItem, 'quantity'>) {
+  function addToCart(item: Omit<CartItem, 'quantity'>, quantity = 1) {
+    const safeQuantity = Math.max(1, Math.floor(quantity))
     const existingItem = items.value.find(i => i.id === item.id)
     if (existingItem) {
-      existingItem.quantity++
+      existingItem.quantity += safeQuantity
     } else {
-      items.value.push({ ...item, quantity: 1 })
+      items.value.push({ ...item, quantity: safeQuantity })
     }
     isCartOpen.value = true // Automatically open cart when item added
   }

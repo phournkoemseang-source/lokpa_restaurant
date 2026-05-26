@@ -64,7 +64,7 @@ const initDB = async () => {
     // Create admin user if not exists
     await db.execute(`
       INSERT IGNORE INTO users (email, password, name, role, provider) 
-      VALUES ('admin@gmail.com', 'admin123', 'Admin', 'admin', 'local')
+      VALUES ('admin@nekmak.com', 'admin9988', 'Admin', 'admin', 'local')
     `)
 
     // Create reservations table
@@ -91,10 +91,59 @@ const initDB = async () => {
         name VARCHAR(255) NOT NULL,
         description TEXT,
         price DECIMAL(10, 2) NOT NULL,
-        category ENUM('Foods', 'Drinks', 'Fruites', 'Pizza&Buger', 'Sweets', 'Vegeterain', 'Wines') NOT NULL,
+        category VARCHAR(100) NOT NULL,
+        cuisine VARCHAR(100),
         image_url VARCHAR(500),
         available BOOLEAN DEFAULT TRUE,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `)
+
+    try {
+      await db.execute('ALTER TABLE menu_items MODIFY COLUMN category VARCHAR(100) NOT NULL')
+      await db.execute('ALTER TABLE menu_items ADD COLUMN IF NOT EXISTS cuisine VARCHAR(100)')
+    } catch (e) {
+      console.log('Schema check: menu item category/cuisine columns already present or handled.')
+    }
+
+    await db.execute(`
+      CREATE TABLE IF NOT EXISTS reviews (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        menu_item_id INT NOT NULL,
+        user_id INT,
+        rating INT CHECK (rating >= 1 AND rating <= 5),
+        comment TEXT,
+        is_favorite BOOLEAN DEFAULT FALSE,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        FOREIGN KEY (menu_item_id) REFERENCES menu_items(id) ON DELETE CASCADE,
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
+      )
+    `)
+
+    await db.execute(`
+      CREATE TABLE IF NOT EXISTS orders (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        user_id INT,
+        total DECIMAL(10, 2) NOT NULL,
+        payment_method VARCHAR(50) DEFAULT 'khqr',
+        status ENUM('pending', 'paid', 'cancelled') DEFAULT 'pending',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
+      )
+    `)
+
+    await db.execute(`
+      CREATE TABLE IF NOT EXISTS order_items (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        order_id INT NOT NULL,
+        menu_item_id INT,
+        name VARCHAR(255) NOT NULL,
+        price DECIMAL(10, 2) NOT NULL,
+        quantity INT NOT NULL,
+        image_url VARCHAR(500),
+        FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE,
+        FOREIGN KEY (menu_item_id) REFERENCES menu_items(id) ON DELETE SET NULL
       )
     `)
 
@@ -160,7 +209,7 @@ await initDB()
 
 // Middleware
 app.use(cors({
-  origin: ['http://localhost:5173', 'http://localhost:5174'],
+  origin: ['http://localhost:5173', 'http://localhost:5174', 'http://127.0.0.1:5173', 'http://127.0.0.1:5174'],
   credentials: true
 }))
 app.use(express.json())
@@ -287,7 +336,7 @@ const isAdmin = (req, res, next) => {
 
 // Routes
 app.get('/', (req, res) => {
-  res.json({ message: 'LokPa Restaurant API Server' })
+  res.json({ message: 'NekMak Restaurant API Server' })
 })
 
 // Local registration
@@ -431,10 +480,100 @@ app.post('/api/logout', (req, res) => {
 // Menu routes
 app.get('/api/menu', async (req, res) => {
   try {
-    const [rows] = await db.execute('SELECT * FROM menu_items WHERE available = TRUE')
+    const [rows] = await db.execute(`
+      SELECT 
+        mi.*,
+        ROUND(AVG(r.rating), 1) AS average_rating,
+        COUNT(r.id) AS rating_count
+      FROM menu_items mi
+      LEFT JOIN reviews r ON r.menu_item_id = mi.id
+      WHERE mi.available = TRUE
+      GROUP BY mi.id
+    `)
     res.json(rows)
   } catch (error) {
     res.status(500).json({ message: 'Error fetching menu' })
+  }
+})
+
+app.post('/api/menu-items/ensure', authenticateToken, async (req, res) => {
+  const { name, description, price, category, cuisine, imageUrl } = req.body
+
+  if (!name || !price || !category) {
+    return res.status(400).json({ message: 'Name, price, and category are required' })
+  }
+
+  try {
+    const [existing] = await db.execute('SELECT id FROM menu_items WHERE name = ? LIMIT 1', [name])
+    if (existing.length > 0) {
+      await db.execute(
+        'UPDATE menu_items SET description = ?, price = ?, category = ?, cuisine = ?, image_url = ?, available = TRUE WHERE id = ?',
+        [description || '', price, category, cuisine || null, imageUrl || '', existing[0].id]
+      )
+      return res.json({ id: existing[0].id })
+    }
+
+    const [result] = await db.execute(
+      'INSERT INTO menu_items (name, description, price, category, cuisine, image_url, available) VALUES (?, ?, ?, ?, ?, ?, TRUE)',
+      [name, description || '', price, category, cuisine || null, imageUrl || '']
+    )
+
+    res.status(201).json({ id: result.insertId })
+  } catch (error) {
+    console.error('Error ensuring menu item:', error)
+    res.status(500).json({ message: 'Error preparing menu item' })
+  }
+})
+
+app.post('/api/orders', authenticateToken, async (req, res) => {
+  const { items, total, paymentMethod, status } = req.body
+  const userId = req.user.id
+
+  if (!Array.isArray(items) || items.length === 0) {
+    return res.status(400).json({ message: 'Order must include at least one item' })
+  }
+
+  const orderStatus = status === 'paid' ? 'paid' : 'pending'
+
+  const connection = await db.getConnection()
+  try {
+    await connection.beginTransaction()
+
+    const [orderResult] = await connection.execute(
+      'INSERT INTO orders (user_id, total, payment_method, status) VALUES (?, ?, ?, ?)',
+      [userId, total, paymentMethod || 'khqr', orderStatus]
+    )
+
+    for (const item of items) {
+      let menuItemId = item.menuItemId || null
+
+      if (!menuItemId) {
+        const [existing] = await connection.execute('SELECT id FROM menu_items WHERE name = ? LIMIT 1', [item.name])
+        if (existing.length > 0) {
+          menuItemId = existing[0].id
+        } else {
+          const [created] = await connection.execute(
+            'INSERT INTO menu_items (name, description, price, category, image_url, available) VALUES (?, ?, ?, ?, ?, TRUE)',
+            [item.name, '', item.price, 'Order', item.image_url || '']
+          )
+          menuItemId = created.insertId
+        }
+      }
+
+      await connection.execute(
+        'INSERT INTO order_items (order_id, menu_item_id, name, price, quantity, image_url) VALUES (?, ?, ?, ?, ?, ?)',
+        [orderResult.insertId, menuItemId, item.name, item.price, item.quantity, item.image_url || '']
+      )
+    }
+
+    await connection.commit()
+    res.status(201).json({ id: orderResult.insertId, status: orderStatus, message: 'Order created successfully' })
+  } catch (error) {
+    await connection.rollback()
+    console.error('Error creating order:', error)
+    res.status(500).json({ message: 'Error creating order' })
+  } finally {
+    connection.release()
   }
 })
 
@@ -464,6 +603,50 @@ app.get('/api/admin/reservations', authenticateToken, isAdmin, async (req, res) 
   }
 })
 
+app.get('/api/admin/orders', authenticateToken, isAdmin, async (req, res) => {
+  try {
+    const [orders] = await db.execute(`
+      SELECT
+        o.id,
+        o.total,
+        o.payment_method,
+        o.status,
+        o.created_at,
+        u.name AS customer_name,
+        u.email AS customer_email
+      FROM orders o
+      LEFT JOIN users u ON u.id = o.user_id
+      ORDER BY o.created_at DESC
+      LIMIT 50
+    `)
+
+    const [items] = await db.execute(`
+      SELECT order_id, name, price, quantity
+      FROM order_items
+      ORDER BY id ASC
+    `)
+
+    const itemsByOrder = items.reduce((lookup, item) => {
+      if (!lookup[item.order_id]) lookup[item.order_id] = []
+      lookup[item.order_id].push({
+        name: item.name,
+        price: Number(item.price),
+        quantity: item.quantity,
+      })
+      return lookup
+    }, {})
+
+    res.json(orders.map(order => ({
+      ...order,
+      total: Number(order.total),
+      items: itemsByOrder[order.id] || [],
+    })))
+  } catch (error) {
+    console.error('Error fetching admin orders:', error)
+    res.status(500).json({ message: 'Error fetching orders' })
+  }
+})
+
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`)
 })
@@ -489,6 +672,25 @@ app.post('/api/reviews', authenticateToken, async (req, res) => {
   } catch (error) {
     console.error('Error handling review:', error)
     res.status(500).json({ message: 'Error processing review' })
+  }
+})
+
+app.get('/api/reviews/summary', async (req, res) => {
+  try {
+    const [rows] = await db.execute(`
+      SELECT
+        mi.id AS menu_item_id,
+        mi.name,
+        ROUND(AVG(r.rating), 1) AS average_rating,
+        COUNT(r.id) AS rating_count
+      FROM menu_items mi
+      LEFT JOIN reviews r ON r.menu_item_id = mi.id
+      GROUP BY mi.id, mi.name
+    `)
+    res.json(rows)
+  } catch (error) {
+    console.error('Error fetching review summary:', error)
+    res.status(500).json({ message: 'Error fetching review summary' })
   }
 })
 

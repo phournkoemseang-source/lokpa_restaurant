@@ -14,6 +14,8 @@ import {
 import { useAuthStore } from '@/stores/auth'
 
 const authStore = useAuthStore()
+const lokpaAddress = 'BP 511, Phum Tropeang Chhuk (Borey Sorla) Sangkat, Street 371, Phnom Penh'
+const lokpaMapsUrl = 'https://maps.app.goo.gl/hZ1T6XHrJvdYi3SS7'
 
 const inquiry = ref({
   name: authStore.user?.name || '',
@@ -72,7 +74,7 @@ function handleNewsletter() {
       <div class="container relative z-10 mx-auto px-6 pb-20 lg:px-16 lg:pb-28">
         <div class="grid items-end gap-12 lg:grid-cols-[1.1fr_0.9fr]">
           <div class="max-w-3xl space-y-7">
-            <p class="text-[10px] font-bold uppercase tracking-[0.45em] text-gold">LokPa Luxe Dining</p>
+            <p class="text-[10px] font-bold uppercase tracking-[0.45em] text-gold">NekMak Luxe Dining</p>
             <h1 class="font-serif text-5xl leading-none text-white md:text-7xl lg:text-8xl">
               Get in Touch
             </h1>
@@ -91,7 +93,7 @@ function handleNewsletter() {
           <div class="border-b border-border-card pb-8">
             <p class="mb-3 text-[10px] font-bold uppercase tracking-[0.35em] text-gold">Address</p>
             <h2 class="font-serif text-3xl leading-tight text-white">
-              Street 240, Phnom Penh, Kingdom of Cambodia.
+              {{ lokpaAddress }}
             </h2>
           </div>
 
@@ -105,9 +107,9 @@ function handleNewsletter() {
 
           <div class="border-b border-border-card pb-7">
             <p class="mb-3 text-[10px] font-bold uppercase tracking-[0.35em] text-gold">Email</p>
-            <a href="mailto:reservations@lokpa.com" class="flex items-center gap-3 text-white/90 transition-colors hover:text-gold">
+            <a href="mailto:phournkoemeang@gmail.com" class="flex items-center gap-3 text-white/90 transition-colors hover:text-gold">
               <Mail class="h-4 w-4 text-gold" />
-              reservations@lokpa.com
+              phournkoemeang@gmail.com
             </a>
           </div>
 
@@ -193,8 +195,8 @@ function handleNewsletter() {
 
     <section class="relative min-h-[520px] overflow-hidden">
       <img
-        src="@/assets/pictures/Wines/matthieu-joannon-6ciLddToTgM-unsplash.jpg"
-        alt="LokPa evening ambience"
+        src="@/assets/pictures/EroupFoods/Wines/matthieu-joannon-6ciLddToTgM-unsplash.jpg"
+        alt="NekMak evening ambience"
         class="absolute inset-0 h-full w-full object-cover opacity-50"
       />
       <div class="absolute inset-0 bg-gradient-to-b from-base-dark via-base-dark/35 to-base-dark"></div>
@@ -202,10 +204,10 @@ function handleNewsletter() {
       <div class="relative z-10 flex min-h-[520px] items-center justify-center px-6 py-24">
         <div class="border border-gold/25 bg-base-dark/55 p-8 text-center shadow-2xl shadow-black/50 backdrop-blur-sm">
           <MapPin class="mx-auto mb-5 h-9 w-9 text-gold" />
-          <h2 class="font-serif text-3xl text-gold">LokPa Luxe</h2>
-          <p class="mt-2 text-[10px] font-bold uppercase tracking-[0.35em] text-white/80">Street 240, Phnom Penh</p>
+          <h2 class="font-serif text-3xl text-gold">NekMak Luxe</h2>
+          <p class="mt-2 max-w-sm text-[10px] font-bold uppercase leading-6 tracking-[0.25em] text-white/80">{{ lokpaAddress }}</p>
           <a
-            href="https://www.google.com/maps/search/?api=1&query=Street+240+Phnom+Penh+Cambodia"
+            :href="lokpaMapsUrl"
             target="_blank"
             rel="noreferrer"
             class="mt-7 inline-flex items-center gap-2 border border-gold/45 px-6 py-3 text-[10px] font-bold uppercase tracking-[0.25em] text-gold transition-all hover:bg-gold hover:text-base-dark"

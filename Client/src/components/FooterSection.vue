@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import { Facebook, Instagram, Youtube, Send } from 'lucide-vue-next'
+import { Facebook, Instagram, Send, Twitter } from 'lucide-vue-next'
 
 const socialLinks = [
   { 
     name: 'Facebook', 
     icon: Facebook, 
-    url: 'https://www.facebook.com/search/top?q=Phourn%20KoemSeang' 
+    url: 'https://www.facebook.com/PhournKoemSeang' 
   },
   { 
     name: 'Telegram', 
@@ -15,12 +15,12 @@ const socialLinks = [
   { 
     name: 'Instagram', 
     icon: Instagram, 
-    url: 'https://www.instagram.com/seang_kosciusko/' 
+    url: 'https://www.instagram.com/seangkosciusko/' 
   },
   { 
-    name: 'YouTube', 
-    icon: Youtube, 
-    url: 'https://www.youtube.com/@PhournKoemseang' 
+    name: 'Twitter', 
+    icon: Twitter, 
+    url: 'https://twitter.com/PhournKoemseang' 
   }
 ]
 </script>
@@ -31,7 +31,7 @@ const socialLinks = [
       <div class="grid grid-cols-1 md:grid-cols-3 gap-12">
         <!-- Brand -->
         <div class="space-y-6">
-          <h3 class="font-serif text-gold text-3xl italic">LokPa</h3>
+          <h3 class="font-serif text-gold text-3xl italic">NekMak</h3>
           <p class="text-text-subtle text-sm leading-relaxed max-w-xs">
             Redefining modern fusion through architectural culinary experiences in the heart of Cambodia.
           </p>
@@ -75,9 +75,9 @@ const socialLinks = [
         <div class="space-y-4">
           <h4 class="text-xs tracking-[0.2em] uppercase text-text-muted font-medium">Connect</h4>
           <p class="text-white/80 text-sm">Phnom Penh, Cambodia</p>
-          <p class="text-white/80 text-sm hover:text-gold transition-colors">contact@lokpa.com</p>
+          <p class="text-white/80 text-sm hover:text-gold transition-colors">phournkoemeang@gmail.com</p>
           <p class="text-text-muted text-xs pt-4">
-            &copy; 2026 LokPa Restaurant. <br/>
+            &copy; 2026 NekMak Restaurant. <br/>
             Designed for Phourn KoemSeang.
           </p>
         </div>

@@ -69,7 +69,7 @@ const filteredItems = computed(() => {
   <div class="min-h-screen bg-base-dark text-white">
     <!-- Elegant Hero -->
     <section class="relative h-[80vh] flex items-center justify-center overflow-hidden">
-      <div class="absolute inset-0 bg-[url('@/assets/pictures/Foods/sharonang-fish-amok-921926_1920.jpg')] bg-cover bg-center opacity-40 scale-110"></div>
+      <div class="absolute inset-0 bg-[url('@/assets/pictures/AsiaFoods/Foods/sharonang-fish-amok-921926_1920.jpg')] bg-cover bg-center opacity-40 scale-110"></div>
       <div class="absolute inset-0 bg-gradient-to-b from-base-dark/90 via-transparent to-base-dark"></div>
       
       <div class="relative z-10 text-center space-y-8 px-6 max-w-4xl">

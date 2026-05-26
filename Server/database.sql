@@ -15,7 +15,7 @@ CREATE TABLE IF NOT EXISTS users (
 
 -- Insert default admin user
 INSERT IGNORE INTO users (email, password, name, role, provider) 
-VALUES ('admin@gmail.com', 'admin123', 'Admin', 'admin', 'local');
+VALUES ('admin@nekmak.com', 'admin9988', 'Admin', 'admin', 'local');
 
 -- Reservations table
 CREATE TABLE IF NOT EXISTS reservations (
@@ -39,7 +39,8 @@ CREATE TABLE IF NOT EXISTS menu_items (
   name VARCHAR(255) NOT NULL,
   description TEXT,
   price DECIMAL(10, 2) NOT NULL,
-  category ENUM('appetizer', 'main', 'dessert', 'drink') NOT NULL,
+  category VARCHAR(100) NOT NULL,
+  cuisine VARCHAR(100),
   image_url VARCHAR(500),
   available BOOLEAN DEFAULT TRUE,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -57,4 +58,28 @@ CREATE TABLE IF NOT EXISTS reviews (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (menu_item_id) REFERENCES menu_items(id) ON DELETE CASCADE,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
+);
+
+-- Orders table
+CREATE TABLE IF NOT EXISTS orders (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  user_id INT,
+  total DECIMAL(10, 2) NOT NULL,
+  payment_method VARCHAR(50) DEFAULT 'khqr',
+  status ENUM('pending', 'paid', 'cancelled') DEFAULT 'pending',
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
+);
+
+-- Order items table
+CREATE TABLE IF NOT EXISTS order_items (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  order_id INT NOT NULL,
+  menu_item_id INT,
+  name VARCHAR(255) NOT NULL,
+  price DECIMAL(10, 2) NOT NULL,
+  quantity INT NOT NULL,
+  image_url VARCHAR(500),
+  FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE,
+  FOREIGN KEY (menu_item_id) REFERENCES menu_items(id) ON DELETE SET NULL
 );

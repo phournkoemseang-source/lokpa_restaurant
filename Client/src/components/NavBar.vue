@@ -44,8 +44,11 @@ function handleLogout() {
 <template>
   <header class="fixed top-0 left-0 right-0 z-50 px-4 pt-4">
     <nav class="mx-auto flex h-16 max-w-7xl items-center justify-between border border-gold/15 bg-base-dark/72 px-5 shadow-2xl shadow-black/30 backdrop-blur-xl lg:px-8">
-      <router-link to="/" class="font-serif text-gold text-xl italic font-bold tracking-wide hover:text-gold-light transition-colors">
-        LokPa Restaurant
+      <router-link to="/" class="flex items-center gap-3 group">
+        <img src="/src/assets/images/logo.png" alt="NekMak Logo" class="h-10 w-10 object-contain transition-transform group-hover:scale-110" />
+        <span class="font-serif text-gold text-xl italic font-bold tracking-wide hover:text-gold-light transition-colors">
+          NekMak
+        </span>
       </router-link>
 
       <!-- Desktop Navigation -->
@@ -54,7 +57,7 @@ function handleLogout() {
           <li v-for="link in navLinks" :key="link.path">
             <router-link
               :to="link.path"
-              class="text-sm tracking-[0.15em] uppercase transition-colors duration-300"
+              class="nav-link relative text-sm tracking-[0.15em] uppercase transition-colors duration-300"
               :class="isActive(link.path) ? 'text-gold' : 'text-white/80 hover:text-gold'"
             >
               {{ link.name }}
@@ -146,3 +149,25 @@ function handleLogout() {
     </div>
   </header>
 </template>
+
+<style scoped>
+.nav-link::after {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  left: 0;
+  width: 0;
+  height: 1px;
+  background: #D4AF37;
+  box-shadow: 0 0 8px #D4AF37;
+  transition: width 0.3s ease;
+}
+
+.nav-link:hover::after {
+  width: 100%;
+}
+
+.router-link-active.nav-link::after {
+  width: 100%;
+}
+</style>

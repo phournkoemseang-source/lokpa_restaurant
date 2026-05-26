@@ -1,7 +1,6 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { ref } from 'vue'
 import {
-  ArrowDown,
   ArrowUpRight,
   CalendarCheck,
   Clock,
@@ -12,43 +11,32 @@ import {
   Quote,
   Send,
   Star,
-  Utensils,
   Wine,
   X,
   Youtube,
 } from 'lucide-vue-next'
 import { useAuthStore } from '@/stores/auth'
+import CinematicHero from '@/components/CinematicHero.vue'
 import LoginCard from '@/components/LoginCard.vue'
 
 const authStore = useAuthStore()
 const selectedGalleryImage = ref<string | null>(null)
 
-const guestName = computed(() => authStore.user?.name?.split(' ')[0] || 'Guest')
-
-const winterCollection = [
+const lokpaServiceTiles = [
   {
-    name: 'Kampot Pepper Beef',
-    origin: 'Asia x Europe',
-    description: 'Charred beef, Kampot pepper jus, potato silk, pickled green mango, and French herb butter.',
-    price: '$36',
-    badge: 'Chef',
-    image: new URL('../assets/pictures/Foods/alex-munsell-Yr4n8O_3UPc-unsplash.jpg', import.meta.url).href,
+    title: 'Private Dining',
+    text: 'Reserved dinners, birthdays, business hosting, and quiet celebrations on Street 240.',
+    image: new URL('../assets/pictures/EroupFoods/Wines/no-revisions-Y1UkHcx9VpM-unsplash.jpg', import.meta.url).href,
   },
   {
-    name: 'Truffle Obsidian',
-    origin: 'Italian Craft',
-    description: 'Fresh pasta, black truffle cream, parmesan snow, toasted garlic, and Cambodian basil oil.',
-    price: '$29',
-    badge: 'New',
-    image: new URL('../assets/pictures/Vegeterain/davide-cantelli-jpkfc5_d-DI-unsplash.jpg', import.meta.url).href,
+    title: 'Signature Cocktails',
+    text: 'Gold-hour drinks, fresh citrus, tropical herbs, and attentive table service.',
+    image: new URL('../assets/pictures/EroupFoods/Drinks/clovis-wood-iUtcVxqxkPk-unsplash.jpg', import.meta.url).href,
   },
   {
-    name: 'Coconut Rose Entremet',
-    origin: 'French Patisserie',
-    description: 'Rose mousse, coconut sponge, palm sugar caramel, and a lacquered dark chocolate shell.',
-    price: '$18',
-    badge: 'Sweet',
-    image: new URL('../assets/pictures/Sweets/cegoh-cupcakes-1133146_1920.jpg', import.meta.url).href,
+    title: 'Modern Fusion Menu',
+    text: 'Khmer aromatics, European technique, premium wines, and seasonal desserts.',
+    image: new URL('../assets/pictures/AsiaFoods/Foods/kan_chansathya-khmer-food-3771719_1920.jpg', import.meta.url).href,
   },
 ]
 
@@ -56,32 +44,32 @@ const fusionHighlights = [
   {
     title: 'Khmer Fire',
     text: 'Fish amok, young coconut, lemongrass, turmeric, and river herbs reworked with modern plating.',
-    image: new URL('../assets/pictures/Foods/sharonang-fish-amok-921926_1920.jpg', import.meta.url).href,
+    image: new URL('../assets/pictures/AsiaFoods/Foods/sharonang-fish-amok-921926_1920.jpg', import.meta.url).href,
   },
   {
     title: 'European Cellar',
     text: 'French sauces, Italian pasta technique, and curated wine service balanced for tropical evenings.',
-    image: new URL('../assets/pictures/Wines/kevin-kelly-PPneSBqfCCU-unsplash.jpg', import.meta.url).href,
+    image: new URL('../assets/pictures/EroupFoods/Wines/kevin-kelly-PPneSBqfCCU-unsplash.jpg', import.meta.url).href,
   },
   {
     title: 'Dessert Atelier',
     text: 'Parisian pastry textures with Cambodian palm sugar, coconut, citrus, and seasonal fruits.',
-    image: new URL('../assets/pictures/Sweets/anna-tukhfatullina-food-photographer-stylist-Mzy-OjtCI70-unsplash.jpg', import.meta.url).href,
+    image: new URL('../assets/pictures/EroupFoods/Sweets/anna-tukhfatullina-food-photographer-stylist-Mzy-OjtCI70-unsplash.jpg', import.meta.url).href,
   },
 ]
 
 const galleryImages = [
-  new URL('../assets/pictures/Foods/kan_chansathya-khmer-food-3771719_1920.jpg', import.meta.url).href,
-  new URL('../assets/pictures/Foods/pichara-g-I7PRofUoE-unsplash.jpg', import.meta.url).href,
-  new URL('../assets/pictures/Drinks/clovis-wood-iUtcVxqxkPk-unsplash.jpg', import.meta.url).href,
-  new URL('../assets/pictures/Pizza&Buger/matteophotopro2020-pizza-5275191_1920.jpg', import.meta.url).href,
-  new URL('../assets/pictures/Vegeterain/luisa-brimble-vIm26fn_QKg-unsplash.jpg', import.meta.url).href,
-  new URL('../assets/pictures/Wines/jeff-siepman-hK9hIPgF3QU-unsplash.jpg', import.meta.url).href,
+  new URL('../assets/pictures/AsiaFoods/Foods/kan_chansathya-khmer-food-3771719_1920.jpg', import.meta.url).href,
+  new URL('../assets/pictures/AsiaFoods/Foods/pichara-g-I7PRofUoE-unsplash.jpg', import.meta.url).href,
+  new URL('../assets/pictures/EroupFoods/Drinks/clovis-wood-iUtcVxqxkPk-unsplash.jpg', import.meta.url).href,
+  new URL('../assets/pictures/EroupFoods/Pizza/matteophotopro2020-pizza-5275191_1920.jpg', import.meta.url).href,
+  new URL('../assets/pictures/EroupFoods/Vegeterain/luisa-brimble-vIm26fn_QKg-unsplash.jpg', import.meta.url).href,
+  new URL('../assets/pictures/EroupFoods/Wines/jeff-siepman-hK9hIPgF3QU-unsplash.jpg', import.meta.url).href,
 ]
 
 const testimonials = [
   {
-    quote: 'LokPa feels like Phnom Penh at night: warm, polished, generous, and full of flavor.',
+    quote: 'NekMak feels like Phnom Penh at night: warm, polished, generous, and full of flavor.',
     name: 'Sophea R.',
     role: 'Chef Table Guest',
   },
@@ -98,104 +86,145 @@ const testimonials = [
 ]
 
 const socialLinks = [
-  { name: 'Facebook', icon: Facebook, url: 'https://www.facebook.com/search/top?q=Phourn%20KoemSeang' },
+  { name: 'Facebook', icon: Facebook, url: 'https://www.facebook.com/PhournKoemSeang' },
   { name: 'Telegram', icon: Send, url: 'https://t.me/Ph_koemseang' },
-  { name: 'Instagram', icon: Instagram, url: 'https://www.instagram.com/seang_kosciusko/' },
+  { name: 'Instagram', icon: Instagram, url: 'https://www.instagram.com/seangkosciusko/' },
   { name: 'YouTube', icon: Youtube, url: 'https://www.youtube.com/@PhournKoemseang' },
 ]
 </script>
 
 <template>
   <div class="home-page min-h-screen bg-base-dark text-white selection:bg-gold/30">
-    <section class="hero-scene relative min-h-screen overflow-hidden">
-      <img
-        src="@/assets/pictures/Foods/alex-munsell-auIbTAcSH6E-unsplash.jpg"
-        alt="LokPa modern Asian and European fusion dish"
-        class="hero-image absolute inset-0 h-full w-full object-cover"
-      />
-      <div class="absolute inset-0 bg-[linear-gradient(180deg,rgba(10,10,10,0.6),rgba(10,10,10,0.24)_34%,rgba(10,10,10,0.96)_92%),radial-gradient(circle_at_70%_28%,rgba(212,175,55,0.22),transparent_28%)]"></div>
-      <div class="absolute inset-x-0 bottom-0 h-56 bg-gradient-to-t from-base-dark to-transparent"></div>
+    <section v-if="authStore.isAuthenticated">
+      <CinematicHero />
+    </section>
 
-      <div class="relative z-10 flex min-h-screen items-center justify-center px-6 pb-20 pt-32 text-center">
-        <div class="mx-auto max-w-4xl">
-          <p class="reveal text-[10px] font-black uppercase tracking-[0.45em] text-gold">
-            Modern Khmer x European Dining
-          </p>
+    <section v-else id="login" class="login-scene relative flex min-h-screen items-center justify-center overflow-hidden bg-base-dark px-5 py-24">
+      <div class="absolute inset-0 z-0">
+        <img 
+          src="https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?q=80&w=2070&auto=format&fit=crop" 
+          alt="Premium bar background" 
+          class="h-full w-full object-cover opacity-40"
+        />
+        <div class="absolute inset-0 bg-gradient-to-b from-black via-black/40 to-black"></div>
+      </div>
+      
+      <div class="login-grid absolute inset-0 opacity-20"></div>
+      <div class="login-glow absolute left-1/2 top-1/2 h-[34rem] w-[34rem] -translate-x-1/2 -translate-y-1/2 rounded-full border border-gold/20"></div>
+      <div class="login-ring absolute -right-28 top-24 h-72 w-72 rounded-full border border-gold/15"></div>
+      <div class="login-ring delay absolute -bottom-24 -left-20 h-80 w-80 rounded-full border border-gold/10"></div>
 
-          <h1 class="reveal delay-1 mt-7 font-serif text-5xl leading-[0.98] md:text-7xl lg:text-8xl">
-            Elevated Culinary
-            <span class="block">Precision</span>
+      <div class="relative z-10 mx-auto grid w-full max-w-6xl items-center gap-10 lg:grid-cols-[0.92fr_1.08fr]">
+        <div class="hidden lg:block">
+          <p class="text-[10px] font-black uppercase tracking-[0.45em] text-gold">NekMak Restaurant</p>
+          <h1 class="mt-7 font-serif text-6xl leading-[0.96] text-white">
+            Black.
+            <span class="block text-gold-light">Gold.</span>
+            <span class="block">Welcome.</span>
           </h1>
-
-          <p class="reveal delay-2 mx-auto mt-7 max-w-2xl text-sm leading-7 text-white/72 md:text-base">
-            Welcome{{ authStore.isAuthenticated ? `, ${guestName}` : '' }} to LokPa Restaurant, a Phnom Penh dining room where Cambodian herbs, Kampot pepper, French sauces, Italian craft, and warm hospitality meet in one refined experience.
+          <p class="mt-7 max-w-md text-sm leading-7 text-white/62">
+            Login to reserve tables, order modern Khmer and European fusion dishes, and enjoy the NekMak dining experience.
           </p>
-
-          <div class="reveal delay-3 mt-8 flex flex-wrap items-center justify-center gap-4">
-            <router-link
-              :to="authStore.isAuthenticated ? '/menu' : { path: '/', hash: '#login' }"
-              class="cta-button inline-flex h-12 items-center gap-3 bg-gold px-7 text-[10px] font-black uppercase tracking-[0.25em] text-base-dark"
-            >
-              View Menu
-              <Utensils class="h-4 w-4" />
-            </router-link>
-            <router-link
-              :to="authStore.isAuthenticated ? '/reservations' : { path: '/', hash: '#login' }"
-              class="inline-flex h-12 items-center gap-3 border border-gold/45 px-7 text-[10px] font-black uppercase tracking-[0.25em] text-gold transition-all hover:bg-gold hover:text-base-dark"
-            >
-              Reserve Table
-              <ArrowUpRight class="h-4 w-4" />
-            </router-link>
-          </div>
-        </div>
-      </div>
-
-      <div class="absolute bottom-12 left-1/2 z-10 hidden -translate-x-1/2 text-gold md:block">
-        <ArrowDown class="scroll-cue h-5 w-5" />
-      </div>
-
-      <div v-if="!authStore.isAuthenticated" id="login" class="absolute inset-x-0 bottom-12 z-20 mx-auto max-w-md scroll-mt-28 px-6">
-        <LoginCard />
-      </div>
-    </section>
-
-    <section class="relative overflow-hidden py-24">
-      <div class="ambient-line absolute left-0 top-1/2 h-px w-full bg-gold/10"></div>
-      <div class="container relative mx-auto grid gap-12 px-6 lg:grid-cols-[0.82fr_1.18fr] lg:px-16">
-        <div class="section-reveal space-y-5">
-          <p class="text-[10px] font-black uppercase tracking-[0.35em] text-gold">New this season</p>
-          <h2 class="font-serif text-4xl leading-tight md:text-6xl">The Winter Collection</h2>
-        </div>
-        <p class="section-reveal max-w-xl text-sm leading-7 text-white/62 md:justify-self-end">
-          LokPa serves real modern fusion in Phnom Penh: Khmer foundations, European discipline, premium wines, private reservations, and attentive service for guests who want dinner to feel special.
-        </p>
-      </div>
-
-      <div class="container mx-auto mt-12 grid gap-6 px-6 md:grid-cols-3 lg:px-16">
-        <article
-          v-for="dish in winterCollection"
-          :key="dish.name"
-          class="dish-card section-reveal group overflow-hidden border border-white/8 bg-card-dark"
-        >
-          <div class="relative h-80 overflow-hidden">
-            <img :src="dish.image" :alt="dish.name" class="h-full w-full object-cover grayscale transition-all duration-700 group-hover:scale-110 group-hover:grayscale-0" />
-            <span class="absolute right-4 top-4 bg-gold px-3 py-2 text-[9px] font-black uppercase tracking-[0.22em] text-base-dark">
-              {{ dish.badge }}
-            </span>
-          </div>
-          <div class="p-6">
-            <div class="mb-3 flex items-center justify-between gap-4">
-              <p class="text-[10px] font-bold uppercase tracking-[0.28em] text-gold">{{ dish.origin }}</p>
-              <p class="font-serif text-2xl text-gold">{{ dish.price }}</p>
+          <div class="mt-8 grid max-w-md grid-cols-3 gap-3">
+            <div class="border border-gold/15 bg-black/40 p-4">
+              <p class="font-serif text-2xl text-gold">KH</p>
+              <p class="mt-1 text-[9px] uppercase tracking-[0.2em] text-white/45">Fusion</p>
             </div>
-            <h3 class="font-serif text-3xl">{{ dish.name }}</h3>
-            <p class="mt-4 text-sm leading-7 text-white/58">{{ dish.description }}</p>
+            <div class="border border-gold/15 bg-black/40 p-4">
+              <p class="font-serif text-2xl text-gold">371</p>
+              <p class="mt-1 text-[9px] uppercase tracking-[0.2em] text-white/45">Street</p>
+            </div>
+            <div class="border border-gold/15 bg-black/40 p-4">
+              <p class="font-serif text-2xl text-gold">VIP</p>
+              <p class="mt-1 text-[9px] uppercase tracking-[0.2em] text-white/45">Dining</p>
+            </div>
           </div>
-        </article>
+        </div>
+
+        <div class="login-card-wrap mx-auto flex w-full max-w-md items-center justify-center border border-gold/20 bg-black/60 p-5 shadow-2xl shadow-gold/10 backdrop-blur-xl md:p-8">
+          <LoginCard />
+        </div>
       </div>
     </section>
 
-    <section class="section-reveal container mx-auto grid gap-6 px-6 py-16 lg:grid-cols-3 lg:px-16">
+    <section v-if="authStore.isAuthenticated" class="relative overflow-hidden py-24">
+      <div class="ambient-line absolute left-0 top-1/2 h-px w-full bg-gold/10"></div>
+      <div class="container relative mx-auto px-6 lg:px-16">
+        <div class="section-reveal mb-12 flex flex-col justify-between gap-8 md:flex-row md:items-end">
+          <div>
+            <p class="text-[10px] font-black uppercase tracking-[0.35em] text-gold">NekMak service</p>
+            <h2 class="mt-4 font-serif text-4xl leading-tight md:text-6xl">Your Table in Phnom Penh</h2>
+          </div>
+          <p class="max-w-xl text-sm leading-7 text-white/62">
+            NekMak serves real modern fusion in Phnom Penh: Khmer foundations, European discipline, premium wines, private reservations, and attentive service for guests who want dinner to feel special.
+          </p>
+        </div>
+
+        <div class="section-reveal grid gap-6 lg:grid-cols-[1.15fr_0.85fr]">
+          <div class="relative min-h-[520px] overflow-hidden border border-white/10 bg-card-dark">
+            <img
+              src="@/assets/pictures/chefs/sebastian-coman-photography-cQbOSRpElxw-unsplash.jpg"
+              alt="NekMak chef preparing a modern Khmer and European fusion plate"
+              class="absolute inset-0 h-full w-full object-cover opacity-75"
+            />
+            <div class="absolute inset-0 bg-[linear-gradient(90deg,rgba(10,10,10,0.92),rgba(10,10,10,0.45)_55%,rgba(10,10,10,0.18)),linear-gradient(180deg,rgba(10,10,10,0.12),rgba(10,10,10,0.92))]"></div>
+
+            <div class="absolute left-6 top-6 border border-gold/25 bg-base-dark/72 px-5 py-4 backdrop-blur-md md:left-10 md:top-10">
+              <p class="text-[10px] font-black uppercase tracking-[0.3em] text-gold">Street 240</p>
+              <p class="mt-2 font-serif text-2xl text-white">NekMak Restaurant</p>
+            </div>
+
+            <div class="absolute bottom-0 left-0 right-0 grid gap-4 p-6 md:grid-cols-[0.82fr_1fr] md:p-10">
+              <div class="border border-white/10 bg-base-dark/82 p-6 backdrop-blur-md">
+                <p class="text-[10px] font-black uppercase tracking-[0.28em] text-gold">Modern Khmer x Europe</p>
+                <h3 class="mt-4 font-serif text-4xl leading-tight">Refined dining, calm service</h3>
+                <p class="mt-4 text-sm leading-7 text-white/64">
+                  Cambodian herbs, Kampot pepper, French sauces, Italian craft, and premium wine pairing in the heart of Phnom Penh.
+                </p>
+              </div>
+              <div class="grid grid-cols-3 gap-3 self-end">
+                <div class="border border-gold/15 bg-base-dark/78 p-4 backdrop-blur-md">
+                  <p class="font-serif text-2xl text-gold">6 AM</p>
+                  <p class="mt-1 text-[9px] uppercase tracking-[0.2em] text-white/45">Open</p>
+                </div>
+                <div class="border border-gold/15 bg-base-dark/78 p-4 backdrop-blur-md">
+                  <p class="font-serif text-2xl text-gold">240</p>
+                  <p class="mt-1 text-[9px] uppercase tracking-[0.2em] text-white/45">Street</p>
+                </div>
+                <div class="border border-gold/15 bg-base-dark/78 p-4 backdrop-blur-md">
+                  <p class="font-serif text-2xl text-gold">KH</p>
+                  <p class="mt-1 text-[9px] uppercase tracking-[0.2em] text-white/45">Fusion</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="grid gap-6">
+            <article
+              v-for="tile in lokpaServiceTiles"
+              :key="tile.title"
+              class="service-tile group relative min-h-40 overflow-hidden border border-white/10 bg-card-dark"
+            >
+              <img :src="tile.image" :alt="tile.title" class="absolute inset-0 h-full w-full object-cover opacity-48 transition-transform duration-700 group-hover:scale-110" loading="lazy" />
+              <div class="absolute inset-0 bg-gradient-to-r from-base-dark via-base-dark/70 to-transparent"></div>
+              <div class="relative z-10 flex min-h-40 flex-col justify-end p-6">
+                <h3 class="font-serif text-3xl">{{ tile.title }}</h3>
+                <p class="mt-2 max-w-sm text-sm leading-6 text-white/62">{{ tile.text }}</p>
+              </div>
+              <router-link
+                :to="authStore.isAuthenticated ? '/menu' : { path: '/', hash: '#login' }"
+                class="absolute right-4 top-4 flex h-10 w-10 items-center justify-center border border-gold/30 bg-base-dark/70 text-gold transition-all group-hover:bg-gold group-hover:text-base-dark"
+                :aria-label="`Explore ${tile.title}`"
+              >
+                <ArrowUpRight class="h-4 w-4" />
+              </router-link>
+            </article>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section v-if="authStore.isAuthenticated" class="section-reveal container mx-auto grid gap-6 px-6 py-16 lg:grid-cols-3 lg:px-16">
       <article
         v-for="highlight in fusionHighlights"
         :key="highlight.title"
@@ -211,7 +240,7 @@ const socialLinks = [
       </article>
     </section>
 
-    <section class="section-reveal overflow-hidden bg-card-dark/25 py-24">
+    <section v-if="authStore.isAuthenticated" class="section-reveal overflow-hidden bg-card-dark/25 py-24">
       <div class="container mx-auto px-6 lg:px-16">
         <div class="mb-12 flex flex-col justify-between gap-8 md:flex-row md:items-end">
           <div>
@@ -231,7 +260,7 @@ const socialLinks = [
             @click="selectedGalleryImage = image"
             :class="['group relative overflow-hidden border border-white/10 bg-base-dark', index === 0 || index === 5 ? 'md:col-span-2 md:row-span-2' : '']"
           >
-            <img :src="image" alt="LokPa Asian and European menu detail" class="h-full min-h-56 w-full object-cover transition-transform duration-700 group-hover:scale-110" loading="lazy" />
+            <img :src="image" alt="NekMak Asian and European menu detail" class="h-full min-h-56 w-full object-cover transition-transform duration-700 group-hover:scale-110" loading="lazy" />
             <div class="absolute inset-0 bg-black/35 opacity-0 transition-opacity duration-300 group-hover:opacity-100"></div>
             <ArrowUpRight class="absolute right-5 top-5 h-5 w-5 text-gold opacity-0 transition-all duration-300 group-hover:opacity-100" />
           </button>
@@ -239,9 +268,9 @@ const socialLinks = [
       </div>
     </section>
 
-    <section class="section-reveal container mx-auto grid gap-8 px-6 py-24 lg:grid-cols-[1.35fr_0.85fr] lg:px-16">
+    <section v-if="authStore.isAuthenticated" class="section-reveal container mx-auto grid gap-8 px-6 py-24 lg:grid-cols-[1.35fr_0.85fr] lg:px-16">
       <div class="relative min-h-[470px] overflow-hidden border border-white/10 bg-card-dark">
-        <img src="@/assets/pictures/Wines/no-revisions-Y1UkHcx9VpM-unsplash.jpg" alt="LokPa dining sanctuary" class="absolute inset-0 h-full w-full object-cover opacity-58" />
+        <img src="@/assets/pictures/EroupFoods/Wines/no-revisions-Y1UkHcx9VpM-unsplash.jpg" alt="NekMak dining sanctuary" class="absolute inset-0 h-full w-full object-cover opacity-58" />
         <div class="absolute inset-0 bg-gradient-to-r from-base-dark/84 via-base-dark/45 to-transparent"></div>
         <div class="relative z-10 flex min-h-[470px] max-w-xl flex-col justify-center p-8 md:p-14">
           <Wine class="mb-6 h-9 w-9 text-gold" />
@@ -273,7 +302,7 @@ const socialLinks = [
 
         <router-link
           :to="authStore.isAuthenticated ? '/reservations' : { path: '/', hash: '#login' }"
-          class="cta-button mt-9 inline-flex h-12 w-full items-center justify-center gap-3 bg-gold px-7 text-[10px] font-black uppercase tracking-[0.25em] text-base-dark"
+          class="cta-button pulse-button mt-9 inline-flex h-12 w-full items-center justify-center gap-3 bg-gold px-7 text-[10px] font-black uppercase tracking-[0.25em] text-base-dark"
         >
           Make Reservation
           <CalendarCheck class="h-4 w-4" />
@@ -281,7 +310,7 @@ const socialLinks = [
       </div>
     </section>
 
-    <section class="section-reveal container mx-auto px-6 pb-24 lg:px-16">
+    <section v-if="authStore.isAuthenticated" class="section-reveal container mx-auto px-6 pb-24 lg:px-16">
       <div class="grid grid-cols-1 gap-6 md:grid-cols-3">
         <article v-for="testimonial in testimonials" :key="testimonial.name" class="testimonial-card border border-gold/10 bg-card-dark/60 p-8">
           <Quote class="mb-8 h-8 w-8 text-gold" />
@@ -294,10 +323,10 @@ const socialLinks = [
       </div>
     </section>
 
-    <section class="border-y border-white/5 bg-card-dark/30 py-20">
+    <section v-if="authStore.isAuthenticated" class="border-y border-white/5 bg-card-dark/30 py-20">
       <div class="container mx-auto grid gap-12 px-6 md:grid-cols-3 lg:px-16">
         <div>
-          <h2 class="font-serif text-4xl text-gold">LokPa Restaurant</h2>
+          <h2 class="font-serif text-4xl text-gold">NekMak Restaurant</h2>
           <p class="mt-4 max-w-sm text-sm leading-7 text-white/55">
             Modern Khmer and European fusion dining in the heart of Phnom Penh. Exclusive, reserved, sensory.
           </p>
@@ -313,7 +342,7 @@ const socialLinks = [
         </div>
 
         <div>
-          <p class="text-[10px] font-black uppercase tracking-[0.28em] text-gold">Follow LokPa</p>
+          <p class="text-[10px] font-black uppercase tracking-[0.28em] text-gold">Follow NekMak</p>
           <div class="mt-5 flex flex-wrap gap-4">
             <a v-for="social in socialLinks" :key="social.name" :href="social.url" target="_blank" rel="noreferrer" class="group flex h-12 w-12 items-center justify-center border border-gold/20 text-gold transition-all duration-300 hover:-translate-y-1 hover:bg-gold hover:text-base-dark" :aria-label="social.name">
               <component :is="social.icon" class="h-5 w-5" />
@@ -323,12 +352,12 @@ const socialLinks = [
       </div>
     </section>
 
-    <Transition name="lightbox">
+    <Transition v-if="authStore.isAuthenticated" name="lightbox">
       <div v-if="selectedGalleryImage" class="fixed inset-0 z-[120] flex items-center justify-center bg-black/85 p-5 backdrop-blur-md" @click.self="selectedGalleryImage = null">
         <button class="absolute right-6 top-6 text-gold transition-colors hover:text-white" @click="selectedGalleryImage = null" aria-label="Close gallery image">
           <X class="h-8 w-8" />
         </button>
-        <img :src="selectedGalleryImage" alt="Selected LokPa gallery image" class="max-h-[86vh] max-w-[92vw] border border-gold/20 object-contain shadow-2xl shadow-black" />
+        <img :src="selectedGalleryImage" alt="Selected NekMak gallery image" class="max-h-[86vh] max-w-[92vw] border border-gold/20 object-contain shadow-2xl shadow-black" />
       </div>
     </Transition>
   </div>
@@ -365,6 +394,33 @@ const socialLinks = [
 .ambient-line {
   animation: gold-scan 7s ease-in-out infinite;
   transform-origin: left;
+}
+
+.login-grid {
+  background-image:
+    linear-gradient(rgba(212, 175, 55, 0.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(212, 175, 55, 0.07) 1px, transparent 1px);
+  background-size: 64px 64px;
+  animation: login-grid-drift 18s linear infinite;
+}
+
+.login-glow {
+  box-shadow:
+    0 0 120px rgba(212, 175, 55, 0.14),
+    inset 0 0 90px rgba(212, 175, 55, 0.08);
+  animation: login-pulse 5s ease-in-out infinite;
+}
+
+.login-ring {
+  animation: login-float 8s ease-in-out infinite;
+}
+
+.login-ring.delay {
+  animation-delay: -3s;
+}
+
+.login-card-wrap {
+  animation: reveal-up 0.9s cubic-bezier(0.2, 0, 0.2, 1) both;
 }
 
 .cta-button {
@@ -425,6 +481,16 @@ const socialLinks = [
   opacity: 0;
 }
 
+.pulse-button {
+  animation: pulse-glow 2.5s infinite;
+}
+
+@keyframes pulse-glow {
+  0% { box-shadow: 0 0 0 0 rgba(212, 175, 55, 0.4); }
+  70% { box-shadow: 0 0 0 20px rgba(212, 175, 55, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(212, 175, 55, 0); }
+}
+
 @keyframes hero-drift {
   from { transform: scale(1.05) translate3d(0, 0, 0); }
   to { transform: scale(1.15) translate3d(-2%, -1.5%, 0); }
@@ -445,12 +511,31 @@ const socialLinks = [
   50% { transform: scaleX(1); opacity: 0.42; }
 }
 
+@keyframes login-grid-drift {
+  from { background-position: 0 0; }
+  to { background-position: 64px 64px; }
+}
+
+@keyframes login-pulse {
+  0%, 100% { transform: translate(-50%, -50%) scale(0.94); opacity: 0.55; }
+  50% { transform: translate(-50%, -50%) scale(1.04); opacity: 1; }
+}
+
+@keyframes login-float {
+  0%, 100% { transform: translate3d(0, 0, 0); opacity: 0.55; }
+  50% { transform: translate3d(0, -18px, 0); opacity: 0.9; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .hero-image,
   .reveal,
   .section-reveal,
   .scroll-cue,
-  .ambient-line {
+  .ambient-line,
+  .login-grid,
+  .login-glow,
+  .login-ring,
+  .login-card-wrap {
     animation: none;
     opacity: 1;
   }

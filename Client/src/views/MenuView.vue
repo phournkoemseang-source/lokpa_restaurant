@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
-import { ChevronRight, Info, Search, ShoppingBag, X } from 'lucide-vue-next'
+import { computed, onMounted, ref } from 'vue'
+import { ChevronRight, Info, Search, ShoppingBag, Star, X } from 'lucide-vue-next'
 import MenuCard from '@/components/MenuCard.vue'
 import { useCartStore } from '@/stores/cart'
+import { useAuthStore } from '@/stores/auth'
 
 type Cuisine = 'Asia Foods' | 'Europe Foods'
 
@@ -16,8 +17,10 @@ interface MenuItem {
   image_url: string
   imageSrc: string
   available: boolean
+  menuItemId?: number
   badge?: string
-  rating?: number
+  rating?: number | null
+  ratingCount?: number
 }
 
 interface CategoryOption {
@@ -34,42 +37,50 @@ const imageModules = import.meta.glob('../assets/pictures/**/*.{jpg,jpeg,png}', 
 }) as Record<string, string>
 
 const cartStore = useCartStore()
+const authStore = useAuthStore()
 const activeCuisine = ref<Cuisine>('Asia Foods')
 const activeCategory = ref('foods')
 const searchQuery = ref('')
 const selectedItem = ref<MenuItem | null>(null)
+const selectedRating = ref(0)
+const ratingComment = ref('')
+const ratingMessage = ref('')
+const isRatingSaving = ref(false)
+const ratingSummaries = ref<Record<string, { menuItemId: number; averageRating: number | null; ratingCount: number }>>({})
 
 const cuisineOptions = [
   {
     name: 'Asia Foods' as Cuisine,
-    count: 37,
     categoryKey: 'foods',
-    imageFolder: 'Foods',
+    imageFolder: 'AsiaFoods/Foods',
     description: 'Cambodian and Asian-inspired plates with herbs, rice, seafood, fruit, and warm spices.',
   },
   {
     name: 'Europe Foods' as Cuisine,
-    count: 45,
     categoryKey: 'foods',
-    imageFolder: 'Pizza&Buger',
+    imageFolder: 'EroupFoods/Foods',
     description: 'European comfort and fine-dining choices: pizza, burgers, desserts, wines, and garden plates.',
   },
 ]
 
 const categoryOptions: Record<Cuisine, CategoryOption[]> = {
   'Asia Foods': [
-    { key: 'foods', label: 'Foods', folder: 'Foods', description: 'Khmer classics, seafood, rice plates, and warm Asian spices.' },
-    { key: 'drinks', label: 'Drinks', folder: 'Drinks', description: 'Tea, citrus coolers, coffee, and dinner-friendly house pours.' },
-    { key: 'desserts', label: 'Desserts', folder: 'Sweets', description: 'Coconut, palm sugar, fruit, and soft pastry finishes.' },
-    { key: 'fruites', label: 'Fruites', folder: 'Fruites', description: 'Seasonal tropical fruit plates and bright market bowls.' },
-    { key: 'vegetarian', label: 'Vegetarian', folder: 'Vegeterain', description: 'Herb-forward garden plates with Asian sauces and grains.' },
+    { key: 'foods', label: 'Foods', folder: 'AsiaFoods/Foods', description: 'Khmer classics, seafood, rice plates, and warm Asian spices.' },
+    { key: 'drinks', label: 'Drinks', folder: 'AsiaFoods/Drinks', description: 'Tea, citrus coolers, coffee, and dinner-friendly house pours.' },
+    { key: 'desserts', label: 'Desserts', folder: 'AsiaFoods/Desert', description: 'Coconut, palm sugar, fruit, and soft pastry finishes.' },
+    { key: 'fruites', label: 'Fruites', folder: 'AsiaFoods/Fruites', description: 'Seasonal tropical fruit plates and bright market bowls.' },
+    { key: 'vegetarian', label: 'Vegetarian', folder: 'AsiaFoods/Vegeterain', description: 'Herb-forward garden plates with Asian sauces and grains.' },
+    { key: 'wines', label: 'Wines', folder: 'AsiaFoods/Wines', description: 'Pairing bottles and cellar selections for Asian tasting menus.' },
   ],
   'Europe Foods': [
-    { key: 'foods', label: 'Foods', folder: 'Pizza&Buger', description: 'Pizza, burgers, roasted meats, and European comfort plates.' },
-    { key: 'pasta', label: 'Pasta', folder: 'Pizza&Buger', description: 'Creamy, spicy, and black-gold pasta plates with seafood accents.' },
-    { key: 'desserts', label: 'Desserts', folder: 'Sweets', description: 'French-style cakes, cream, berries, and patisserie textures.' },
-    { key: 'wines', label: 'Wines', folder: 'Wines', description: 'Red, white, sparkling, and pairing bottles for slow evenings.' },
-    { key: 'garden', label: 'Garden', folder: 'Vegeterain', description: 'European vegetable compositions, greens, and delicate sauces.' },
+    { key: 'foods', label: 'Foods', folder: 'EroupFoods/Foods', description: 'Roasted meats and refined European comfort plates.' },
+    { key: 'pizza', label: 'Pizza', folder: 'EroupFoods/Pizza', description: 'Stone-baked pizzas with cheese, herbs, char, and rich sauces.' },
+    { key: 'burgers', label: 'Burgers', folder: 'EroupFoods/Burgers', description: 'Stacked burgers with brioche, cheese, pepper relish, and crisp greens.' },
+    { key: 'pasta', label: 'Pasta', folder: 'EroupFoods/Pasta', description: 'Creamy, spicy, and black-gold pasta plates with seafood accents.' },
+    { key: 'drinks', label: 'Drinks', folder: 'EroupFoods/Drinks', description: 'Cocktails, cold drinks, and European-style dinner refreshers.' },
+    { key: 'desserts', label: 'Desserts', folder: 'EroupFoods/Sweets', description: 'French-style cakes, cream, berries, and patisserie textures.' },
+    { key: 'wines', label: 'Wines', folder: 'EroupFoods/Wines', description: 'Red, white, sparkling, and pairing bottles for slow evenings.' },
+    { key: 'garden', label: 'Garden', folder: 'EroupFoods/Vegeterain', description: 'European vegetable compositions, greens, and delicate sauces.' },
   ],
 }
 
@@ -100,12 +111,27 @@ const dishCopy: Record<Cuisine, Record<string, Array<Omit<MenuItem, 'id' | 'cuis
       { name: 'Charred Herb Greens', description: 'Seasonal vegetables with tamarind glaze, fried garlic, and Thai basil.', price: 15, badge: 'Green', rating: 4.7 },
       { name: 'Tofu Pepper Claypot', description: 'Silken tofu, Kampot pepper sauce, mushrooms, scallion, and steamed rice.', price: 16, rating: 4.9 },
     ],
+    wines: [
+      { name: 'Mekong Pairing Rouge', description: 'A rounded red wine pairing for pepper beef, grilled fish, and slow spice.', price: 38, badge: 'Pairing', rating: 4.7 },
+      { name: 'Jasmine Blanc', description: 'A bright white pour for coconut curries, seafood, citrus herbs, and rice plates.', price: 36, rating: 4.8 },
+      { name: 'Golden Celebration Brut', description: 'Dry bubbles for private tables, desserts, and the first toast of the evening.', price: 42, rating: 4.9 },
+    ],
   },
   'Europe Foods': {
     foods: [
       { name: 'Black Gold Linguine', description: 'Squid ink pasta tossed with scallops, chili, garlic, and a glossy white wine butter.', price: 32, badge: 'Spicy', rating: 4.8 },
       { name: 'Truffle Obsidian', description: 'Fresh pasta with black truffle cream, parmesan snow, garlic, and Cambodian basil oil.', price: 29, badge: 'New', rating: 4.9 },
       { name: 'Fire Table Burger', description: 'Beef patty, aged cheddar, pepper relish, brioche, and crisp garden greens.', price: 22, rating: 4.7 },
+    ],
+    pizza: [
+      { name: 'Margherita Royale', description: 'Tomato, mozzarella, basil oil, parmesan, and a crisp stone-baked crust.', price: 20, rating: 4.7 },
+      { name: 'Pepper Char Pizza', description: 'Smoked beef, Kampot pepper, roasted onion, chili honey, and mozzarella.', price: 24, badge: 'Hot', rating: 4.8 },
+      { name: 'Forest Mushroom Pizza', description: 'Wild mushrooms, cream, herbs, garlic oil, and shaved parmesan.', price: 23, rating: 4.8 },
+    ],
+    burgers: [
+      { name: 'Fire Table Burger', description: 'Beef patty, aged cheddar, pepper relish, brioche, and crisp garden greens.', price: 22, rating: 4.7 },
+      { name: 'Black Truffle Burger', description: 'Beef, truffle cream, caramelized onion, smoked cheese, and golden fries.', price: 27, badge: 'Chef', rating: 4.9 },
+      { name: 'Crispy Garden Burger', description: 'Vegetable patty, basil aioli, tomato, pickles, and butter lettuce.', price: 19, rating: 4.6 },
     ],
     pasta: [
       { name: 'Golden Carbonara', description: 'Egg yolk cream, parmesan, pancetta, cracked pepper, and handmade pasta ribbons.', price: 25, rating: 4.8 },
@@ -122,11 +148,37 @@ const dishCopy: Record<Cuisine, Record<string, Array<Omit<MenuItem, 'id' | 'cuis
       { name: 'Loire Blanc', description: 'Mineral white wine for fish, citrus herbs, prawns, and light garden plates.', price: 39, badge: 'Pairing', rating: 4.7 },
       { name: 'Sparkling Brut', description: 'Dry bubbles for celebrations, desserts, and the first pour of the evening.', price: 42, rating: 4.9 },
     ],
+    drinks: [
+      { name: 'Citrus Aperitivo', description: 'Bitter orange, soda, herbs, and a bright European dinner-hour finish.', price: 9, rating: 4.7 },
+      { name: 'Velvet Espresso', description: 'Espresso, cream, dark caramel, and a cold glass service.', price: 8, badge: 'Cold', rating: 4.8 },
+      { name: 'Garden Spritz', description: 'Sparkling citrus, basil, cucumber, and a clean aromatic lift.', price: 10, rating: 4.7 },
+    ],
     garden: [
       { name: 'Emerald Prawns', description: 'Char-grilled prawns over seasonal greens, ginger soy dressing, and herb oil.', price: 26, rating: 4.7 },
       { name: 'Burrata Herb Plate', description: 'Burrata, roasted tomato, basil oil, olives, and crisp bread.', price: 24, rating: 4.8 },
       { name: 'Wild Mushroom Garden', description: 'Roasted mushrooms, greens, parmesan cream, and toasted seed crumble.', price: 20, badge: 'Garden', rating: 4.7 },
     ],
+  },
+}
+
+const categoryNamePools: Record<Cuisine, Record<string, string[]>> = {
+  'Asia Foods': {
+    foods: ['Fish Amok', 'Beef Lok Lak', 'Khmer Curry', 'Grilled Pork', 'Pepper Beef', 'Lemongrass Chicken', 'Pork Rice', 'Mango Salad', 'Coconut Soup', 'Fried Noodles'],
+    drinks: ['Jasmine Tea', 'Lychee Cooler', 'Palm Soda', 'Cold Brew', 'Ginger Lime', 'Iced Coffee', 'Mint Tea', 'Coconut Juice', 'Tamarind Fizz'],
+    desserts: ['Palm Flan', 'Coconut Cake', 'Sesame Tart', 'Mango Sticky Rice', 'Banana Fritter', 'Rice Pudding', 'Coconut Jelly', 'Honey Cake', 'Sweet Dumpling'],
+    fruites: ['Mango Bowl', 'Dragon Fruit', 'Lychee Plate', 'Papaya Lime', 'Berry Bloom', 'Citrus Plate', 'Tropical Bowl', 'Rambutan Cup', 'Melon Mix'],
+    vegetarian: ['Lotus Curry', 'Tofu Claypot', 'Herb Greens', 'Mushroom Rice', 'Garden Noodles', 'Eggplant Curry', 'Green Salad', 'Vegetable Amok'],
+    wines: ['Jasmine Blanc', 'Mekong Rouge', 'Golden Brut', 'Lotus Rose', 'Pepper Red', 'Coconut White'],
+  },
+  'Europe Foods': {
+    foods: ['Roast Beef', 'Grilled Salmon', 'Herb Chicken', 'Truffle Pasta', 'Scallop Butter', 'Steak Frites', 'Duck Jus', 'Seafood Plate'],
+    pizza: ['Margherita', 'Pepper Pizza', 'Mushroom Pizza', 'Cheese Pizza', 'Garden Pizza', 'Truffle Pizza', 'Spicy Pizza', 'Seafood Pizza'],
+    burgers: ['Classic Burger', 'Double Burger', 'Cheese Burger', 'Truffle Burger', 'Crispy Burger', 'Spicy Burger', 'Garden Burger', 'Black Burger'],
+    pasta: ['Carbonara', 'Nero Pasta', 'Basil Rigatoni', 'Seafood Pasta', 'Tomato Pasta', 'Creamy Pasta', 'Truffle Linguine', 'Garlic Spaghetti'],
+    drinks: ['Aperitivo', 'Espresso', 'Garden Spritz', 'Berry Soda', 'Lemon Fizz', 'Iced Latte', 'Orange Tonic', 'Mint Cooler'],
+    desserts: ['Berry Finale', 'Rose Dome', 'Lemon Tart', 'Chocolate Cake', 'Pancakes', 'Cupcake', 'Cream Cake', 'Fruit Tart'],
+    wines: ['Bordeaux', 'Loire Blanc', 'Sparkling Brut', 'Chardonnay', 'Cabernet', 'Rose Wine', 'Pinot Noir'],
+    garden: ['Burrata Plate', 'Mushroom Garden', 'Emerald Prawns', 'Harvest Salad', 'Avocado Toast', 'Quinoa Bowl', 'Roasted Greens'],
   },
 }
 
@@ -139,23 +191,42 @@ const folderImages = (folder: string) =>
       src,
     }))
 
+const dishNameFor = (cuisine: Cuisine, categoryKey: string, index: number) => {
+  const names = categoryNamePools[cuisine][categoryKey] || ['NekMak Plate']
+  return names[index % names.length]
+}
+
 const imageFor = (folder: string, index: number) => {
   const images = folderImages(folder)
   return images[index % Math.max(images.length, 1)] || { path: '', src: '' }
 }
 
-const buildItems = (cuisine: Cuisine, category: CategoryOption) => {
+const buildItems = (cuisine: Cuisine, category: CategoryOption): MenuItem[] => {
   const copy = dishCopy[cuisine][category.key] || []
-  return copy.map((item, index) => {
-    const image = imageFor(category.folder, index)
+  const images = folderImages(category.folder)
+  const total = Math.max(images.length, copy.length)
+
+  return Array.from({ length: total }, (_, index) => {
+    const template = copy[index % Math.max(copy.length, 1)]
+    const image = images[index] || imageFor(category.folder, index)
+    const item = template || {
+      name: dishNameFor(cuisine, category.key, index),
+      description: category.description,
+      price: cuisine === 'Asia Foods' ? 14 + (index % 6) * 3 : 18 + (index % 7) * 4,
+    }
+
     return {
       ...item,
-      id: cuisine === 'Asia Foods' ? index + 1 + category.key.length * 10 : index + 100 + category.key.length * 10,
+      name: index < copy.length ? item.name : dishNameFor(cuisine, category.key, index),
+      id: (cuisine === 'Asia Foods' ? 10000 : 20000) + category.key.length * 100 + index,
       category: category.label,
       cuisine,
       image_url: image.path,
       imageSrc: image.src,
       available: true,
+      menuItemId: ratingSummaries.value[item.name]?.menuItemId,
+      rating: ratingSummaries.value[item.name]?.averageRating ?? null,
+      ratingCount: ratingSummaries.value[item.name]?.ratingCount ?? 0,
     }
   })
 }
@@ -173,7 +244,8 @@ const selectedCategory = computed(() => currentCategories.value.find((category) 
 const cuisineTiles = computed(() =>
   cuisineOptions.map((cuisine) => {
     const image = imageFor(cuisine.imageFolder, 0)
-    return { ...cuisine, imageSrc: image.src }
+    const count = categoryOptions[cuisine.name].reduce((total, category) => total + buildItems(cuisine.name, category).length, 0)
+    return { ...cuisine, count, imageSrc: image.src }
   })
 )
 
@@ -183,7 +255,7 @@ const categoryTiles = computed(() =>
     return {
       ...category,
       imageSrc: image.src,
-      total: dishCopy[activeCuisine.value][category.key]?.length || 3,
+      total: buildItems(activeCuisine.value, category).length,
     }
   })
 )
@@ -201,7 +273,7 @@ const displayedItems = computed(() => {
     )
   }
 
-  return items.slice(0, 3)
+  return items
 })
 
 const selectCuisine = (cuisine: Cuisine) => {
@@ -214,14 +286,118 @@ const selectCategory = (category: string) => {
   activeCategory.value = category
   searchQuery.value = ''
 }
+
+const openDetail = (item: MenuItem) => {
+  selectedItem.value = item
+  selectedRating.value = 0
+  ratingComment.value = ''
+  ratingMessage.value = ''
+}
+
+const addDetailItem = () => {
+  if (!selectedItem.value) return
+
+  cartStore.addToCart({
+    id: selectedItem.value.id,
+    name: selectedItem.value.name,
+    price: selectedItem.value.price,
+    image_url: selectedItem.value.image_url,
+    imageSrc: selectedItem.value.imageSrc,
+    menuItemId: selectedItem.value.menuItemId,
+  })
+}
+
+const refreshRatingSummaries = async () => {
+  try {
+    const response = await fetch('http://localhost:5001/api/reviews/summary')
+    if (!response.ok) return
+
+    const rows: Array<{ name: string; menu_item_id: number; average_rating: string | number | null; rating_count: number }> = await response.json()
+    ratingSummaries.value = rows.reduce<Record<string, { menuItemId: number; averageRating: number | null; ratingCount: number }>>((summary, row) => {
+      summary[row.name] = {
+        menuItemId: row.menu_item_id,
+        averageRating: row.average_rating === null ? null : Number(row.average_rating),
+        ratingCount: Number(row.rating_count || 0),
+      }
+      return summary
+    }, {})
+  } catch (error) {
+    console.error('Unable to load rating summaries', error)
+  }
+}
+
+const submitRating = async () => {
+  if (!selectedItem.value || selectedRating.value === 0) return
+
+  if (!authStore.token) {
+    ratingMessage.value = 'Please login before rating this dish.'
+    return
+  }
+
+  isRatingSaving.value = true
+  ratingMessage.value = ''
+
+  try {
+    const ensureResponse = await fetch('http://localhost:5001/api/menu-items/ensure', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${authStore.token}`,
+      },
+      body: JSON.stringify({
+        name: selectedItem.value.name,
+        description: selectedItem.value.description,
+        price: selectedItem.value.price,
+        category: selectedItem.value.category,
+        cuisine: selectedItem.value.cuisine,
+        imageUrl: selectedItem.value.image_url,
+      }),
+    })
+
+    if (!ensureResponse.ok) throw new Error('Unable to prepare menu item for rating')
+    const ensured = await ensureResponse.json()
+
+    const ratingResponse = await fetch('http://localhost:5001/api/reviews', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${authStore.token}`,
+      },
+      body: JSON.stringify({
+        menuItemId: ensured.id,
+        rating: selectedRating.value,
+        comment: ratingComment.value,
+        isFavorite: false,
+      }),
+    })
+
+    if (!ratingResponse.ok) throw new Error('Unable to save rating')
+    ratingMessage.value = 'Thanks. Your rating was saved.'
+    await refreshRatingSummaries()
+    const fresh = ratingSummaries.value[selectedItem.value.name]
+    selectedItem.value = {
+      ...selectedItem.value,
+      menuItemId: fresh?.menuItemId,
+      rating: fresh?.averageRating ?? null,
+      ratingCount: fresh?.ratingCount ?? 0,
+    }
+  } catch (error) {
+    console.error(error)
+    ratingMessage.value = 'Could not save rating. Please try again.'
+  } finally {
+    isRatingSaving.value = false
+  }
+}
+
+onMounted(refreshRatingSummaries)
 </script>
 
 <template>
   <div class="min-h-screen bg-base-dark text-white">
     <section class="relative flex min-h-[58vh] items-center justify-center overflow-hidden pt-24">
       <img
-        src="@/assets/pictures/Foods/sharonang-fish-amok-921926_1920.jpg"
-        alt="LokPa signature menu"
+        src="@/assets/pictures/AsiaFoods/Foods/sharonang-fish-amok-921926_1920.jpg"
+        alt="NekMak signature menu"
         class="absolute inset-0 h-full w-full scale-105 object-cover opacity-50"
       />
       <div class="absolute inset-0 bg-gradient-to-b from-base-dark/90 via-base-dark/55 to-base-dark"></div>
@@ -230,12 +406,12 @@ const selectCategory = (category: string) => {
       <div class="relative z-10 max-w-4xl px-6 text-center">
         <div class="mb-4 flex items-center justify-center gap-4">
           <div class="h-px w-12 bg-gold/50"></div>
-          <span class="text-xs font-bold uppercase tracking-[0.5em] text-gold">LokPa Gastronomy</span>
+          <span class="text-xs font-bold uppercase tracking-[0.5em] text-gold">NekMak Gastronomy</span>
           <div class="h-px w-12 bg-gold/50"></div>
         </div>
         <h1 class="font-serif text-6xl leading-none tracking-tight text-white md:text-8xl">The Menu</h1>
         <p class="mx-auto mt-7 max-w-2xl font-serif text-lg italic leading-relaxed text-text-subtle md:text-xl">
-          Select Asia Foods or Europe Foods, choose a category, then browse three curated dishes at a time.
+          Select Asia Foods or Europe Foods, choose a category, then browse the local dishes saved in that folder.
         </p>
 
         <button
@@ -322,7 +498,7 @@ const selectCategory = (category: string) => {
           <h2 class="mt-3 font-serif text-4xl md:text-6xl">{{ searchQuery ? 'Search Results' : selectedCategory.label }}</h2>
           <p class="mt-4 max-w-2xl text-sm leading-7 text-white/58">{{ selectedCategory.description }}</p>
         </div>
-        <p class="text-sm uppercase tracking-[0.25em] text-text-muted">Showing 3 cards</p>
+        <p class="text-sm uppercase tracking-[0.25em] text-text-muted">Showing {{ displayedItems.length }} cards</p>
       </div>
 
       <div v-if="displayedItems.length > 0" class="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3 lg:gap-10">
@@ -330,7 +506,7 @@ const selectCategory = (category: string) => {
           v-for="item in displayedItems"
           :key="item.id"
           :item="item"
-          @show-detail="selectedItem = item"
+          @show-detail="openDetail(item)"
         />
       </div>
 
@@ -357,14 +533,50 @@ const selectCategory = (category: string) => {
             <div class="space-y-6 p-8 md:p-10">
               <p class="text-[10px] font-black uppercase tracking-[0.3em] text-gold">{{ selectedItem.cuisine }} / {{ selectedItem.category }}</p>
               <h3 class="font-serif text-4xl text-white md:text-5xl">{{ selectedItem.name }}</h3>
+              <div class="flex items-center gap-2" :class="selectedItem.rating && selectedItem.ratingCount ? 'text-gold' : 'text-text-muted'">
+                <Star class="h-5 w-5" :class="selectedItem.rating && selectedItem.ratingCount ? 'fill-current' : ''" />
+                <span class="text-sm">
+                  {{ selectedItem.rating && selectedItem.ratingCount ? `${selectedItem.rating.toFixed(1)} (${selectedItem.ratingCount} ratings)` : 'No ratings yet' }}
+                </span>
+              </div>
               <p class="leading-relaxed text-text-subtle">{{ selectedItem.description }}</p>
               <div class="font-serif text-4xl text-gold">${{ selectedItem.price.toFixed(2) }}</div>
+
               <button
-                @click="cartStore.addToCart({ id: selectedItem.id, name: selectedItem.name, price: selectedItem.price, image_url: selectedItem.image_url, imageSrc: selectedItem.imageSrc })"
+                @click="addDetailItem"
                 class="w-full bg-gold py-4 text-xs font-black uppercase tracking-[0.3em] text-base-dark transition-colors hover:bg-white"
               >
                 Add To Cart
               </button>
+
+              <div class="space-y-4 border-t border-gold/10 pt-6">
+                <p class="text-[10px] font-black uppercase tracking-[0.28em] text-gold">Rate this dish</p>
+                <div class="flex gap-2">
+                  <button
+                    v-for="star in 5"
+                    :key="star"
+                    @click="selectedRating = star"
+                    class="text-gold transition-transform hover:scale-110"
+                    :aria-label="`Rate ${star} stars`"
+                  >
+                    <Star class="h-7 w-7" :class="star <= selectedRating ? 'fill-current' : ''" />
+                  </button>
+                </div>
+                <textarea
+                  v-model="ratingComment"
+                  rows="3"
+                  placeholder="Optional note"
+                  class="w-full border border-gold/10 bg-base-dark/70 px-4 py-3 text-sm text-white outline-none placeholder:text-text-muted focus:border-gold"
+                ></textarea>
+                <button
+                  @click="submitRating"
+                  :disabled="selectedRating === 0 || isRatingSaving"
+                  class="w-full border border-gold/40 py-3 text-[10px] font-black uppercase tracking-[0.25em] text-gold transition-colors hover:bg-gold hover:text-base-dark disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  {{ isRatingSaving ? 'Saving...' : 'Save Rating' }}
+                </button>
+                <p v-if="ratingMessage" class="text-xs text-text-subtle">{{ ratingMessage }}</p>
+              </div>
             </div>
           </div>
         </div>

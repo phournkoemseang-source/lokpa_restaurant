@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import { Star } from 'lucide-vue-next'
 import { useCartStore } from '@/stores/cart'
 
@@ -10,9 +11,12 @@ const props = defineProps<{
     price: number
     image_url: string
     imageSrc?: string
+    menuItemId?: number
     category: string
+    cuisine?: string
     badge?: string
-    rating?: number
+    rating?: number | null
+    ratingCount?: number
   }
 }>()
 
@@ -21,6 +25,11 @@ defineEmits<{
 }>()
 
 const cartStore = useCartStore()
+
+const ratingLabel = computed(() => {
+  if (!props.item.rating || !props.item.ratingCount) return 'No ratings yet'
+  return `${props.item.rating.toFixed(1)} (${props.item.ratingCount})`
+})
 
 const getImageUrl = () => {
   if (props.item.imageSrc) return props.item.imageSrc
@@ -35,17 +44,18 @@ const addItem = () => {
     price: props.item.price,
     image_url: props.item.image_url,
     imageSrc: props.item.imageSrc,
+    menuItemId: props.item.menuItemId,
   })
 }
 </script>
 
 <template>
-  <article class="menu-card group flex min-h-[620px] flex-col border border-gold/15 bg-card-dark/80 p-6 shadow-2xl transition-all duration-500 hover:-translate-y-2 hover:border-gold/55">
+  <article class="menu-card group relative flex h-[560px] flex-col border border-gold/15 bg-card-dark/80 p-5 shadow-2xl transition-all duration-500 hover:-translate-y-2 hover:border-gold/55 hover:shadow-gold/10">
     <button class="relative block w-full overflow-hidden text-left" @click="$emit('show-detail')">
       <img
         :src="getImageUrl()"
         :alt="item.name"
-        class="h-72 w-full object-cover transition-transform duration-[1.1s] group-hover:scale-110"
+        class="h-56 w-full object-cover transition-transform duration-700 group-hover:scale-105"
         loading="lazy"
       />
       <div class="absolute inset-0 bg-gradient-to-t from-base-dark/45 via-transparent to-transparent"></div>
@@ -57,28 +67,28 @@ const addItem = () => {
       </span>
     </button>
 
-    <div class="flex flex-1 flex-col pt-8">
+    <div class="flex flex-1 flex-col pt-6">
       <div class="flex items-start justify-between gap-5">
         <button class="min-w-0 text-left" @click="$emit('show-detail')">
-          <h3 class="font-serif text-4xl leading-tight text-white transition-colors duration-300 group-hover:text-gold md:text-5xl">
+          <h3 class="font-serif text-3xl leading-tight text-white transition-colors duration-300 group-hover:text-gold">
             {{ item.name }}
           </h3>
         </button>
         <span class="whitespace-nowrap font-serif text-2xl text-gold">${{ item.price.toFixed(2) }}</span>
       </div>
 
-      <div class="mt-5 flex items-center gap-2 text-gold">
-        <Star class="h-5 w-5 fill-current" />
-        <span class="text-sm">{{ (item.rating || 4.8).toFixed(1) }}</span>
+      <div class="mt-4 flex items-center gap-2" :class="item.rating && item.ratingCount ? 'text-gold' : 'text-text-muted'">
+        <Star class="h-5 w-5" :class="item.rating && item.ratingCount ? 'fill-current' : ''" />
+        <span class="text-sm">{{ ratingLabel }}</span>
       </div>
 
-      <p class="mt-7 line-clamp-3 text-lg leading-8 text-white/68">
+      <p class="mt-5 line-clamp-3 text-sm leading-7 text-white/68">
         {{ item.description }}
       </p>
 
       <button
         @click="addItem"
-        class="mt-auto w-full bg-gold py-5 text-xs font-black uppercase tracking-[0.35em] text-base-dark transition-all duration-500 hover:bg-white active:scale-[0.98]"
+        class="mt-auto w-full bg-gold py-4 text-xs font-black uppercase tracking-[0.3em] text-base-dark transition-all duration-500 hover:bg-white active:scale-[0.98]"
       >
         Add To Cart
       </button>
