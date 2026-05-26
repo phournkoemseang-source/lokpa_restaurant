@@ -1,0 +1,13 @@
+# Environment variables
+.env
+
+# Database files
+server/database.sql
+
+# Node modules
+node_modules/
+client/node_modules/
+Client/node_modules/
+
+# OS files
+.DS_Store
