@@ -4,18 +4,15 @@ import dotenv from 'dotenv'
 import mysql from 'mysql2/promise'
 import jwt from 'jsonwebtoken'
 import passport from 'passport'
+import path from 'path'
+import { fileURLToPath } from 'url'
 import { Strategy as GoogleStrategy } from 'passport-google-oauth20'
 import { Strategy as AppleStrategy } from 'passport-apple'
 
-dotenv.config()
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
 
-console.log('--- Auth Config Check ---')
-console.log('Port:', process.env.PORT)
-console.log('Google Client ID:', process.env.GOOGLE_CLIENT_ID ? 'Loaded' : 'MISSING')
-if (process.env.GOOGLE_CLIENT_ID) {
-  console.log('Google Client ID ends with:', process.env.GOOGLE_CLIENT_ID.slice(-10))
-}
-console.log('-------------------------')
+dotenv.config({ path: path.resolve(__dirname, '../.env') })
 
 const app = express()
 const PORT = process.env.PORT || 5001
@@ -38,7 +35,7 @@ const initDB = async () => {
     console.log('Connected to MySQL database')
     connection.release()
 
-    // Create users table if not exists
+    // Create tables
     await db.execute(`
       CREATE TABLE IF NOT EXISTS users (
         id INT AUTO_INCREMENT PRIMARY KEY,
@@ -46,28 +43,26 @@ const initDB = async () => {
         password VARCHAR(255),
         name VARCHAR(255),
         role ENUM('user', 'admin') DEFAULT 'user',
-        provider VARCHAR(50),
+        provider VARCHAR(50) DEFAULT 'local',
         provider_id VARCHAR(255),
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `)
 
-    // Ensure social login columns exist (for migration)
-    try {
-      await db.execute('ALTER TABLE users MODIFY COLUMN password VARCHAR(255) NULL')
-      await db.execute('ALTER TABLE users ADD COLUMN IF NOT EXISTS provider VARCHAR(50) DEFAULT "local"')
-      await db.execute('ALTER TABLE users ADD COLUMN IF NOT EXISTS provider_id VARCHAR(255)')
-    } catch (e) {
-      console.log('Schema check: provider columns already present or handled.')
-    }
-
-    // Create admin user if not exists
     await db.execute(`
-      INSERT IGNORE INTO users (email, password, name, role, provider) 
-      VALUES ('admin@nekmak.com', 'admin9988', 'Admin', 'admin', 'local')
+      CREATE TABLE IF NOT EXISTS menu_items (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        name VARCHAR(255) NOT NULL,
+        description TEXT,
+        price DECIMAL(10, 2) NOT NULL,
+        category VARCHAR(100) NOT NULL,
+        cuisine VARCHAR(100) DEFAULT 'International',
+        image_url VARCHAR(500),
+        available BOOLEAN DEFAULT TRUE,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
     `)
 
-    // Create reservations table
     await db.execute(`
       CREATE TABLE IF NOT EXISTS reservations (
         id INT AUTO_INCREMENT PRIMARY KEY,
@@ -79,45 +74,9 @@ const initDB = async () => {
         email VARCHAR(255) NOT NULL,
         phone VARCHAR(50),
         special_requests TEXT,
-        status ENUM('pending', 'confirmed', 'cancelled') DEFAULT 'pending',
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-      )
-    `)
-
-    // Create menu_items table
-    await db.execute(`
-      CREATE TABLE IF NOT EXISTS menu_items (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        name VARCHAR(255) NOT NULL,
-        description TEXT,
-        price DECIMAL(10, 2) NOT NULL,
-        category VARCHAR(100) NOT NULL,
-        cuisine VARCHAR(100),
-        image_url VARCHAR(500),
-        available BOOLEAN DEFAULT TRUE,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-      )
-    `)
-
-    try {
-      await db.execute('ALTER TABLE menu_items MODIFY COLUMN category VARCHAR(100) NOT NULL')
-      await db.execute('ALTER TABLE menu_items ADD COLUMN IF NOT EXISTS cuisine VARCHAR(100)')
-    } catch (e) {
-      console.log('Schema check: menu item category/cuisine columns already present or handled.')
-    }
-
-    await db.execute(`
-      CREATE TABLE IF NOT EXISTS reviews (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        menu_item_id INT NOT NULL,
-        user_id INT,
-        rating INT CHECK (rating >= 1 AND rating <= 5),
-        comment TEXT,
-        is_favorite BOOLEAN DEFAULT FALSE,
+        status ENUM('pending', 'confirmed', 'cancelled', 'rejected') DEFAULT 'pending',
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-        FOREIGN KEY (menu_item_id) REFERENCES menu_items(id) ON DELETE CASCADE,
-        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
       )
     `)
 
@@ -127,7 +86,7 @@ const initDB = async () => {
         user_id INT,
         total DECIMAL(10, 2) NOT NULL,
         payment_method VARCHAR(50) DEFAULT 'khqr',
-        status ENUM('pending', 'paid', 'cancelled') DEFAULT 'pending',
+        status ENUM('pending', 'paid', 'cancelled', 'rejected') DEFAULT 'pending',
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
       )
@@ -147,61 +106,70 @@ const initDB = async () => {
       )
     `)
 
+    await db.execute(`
+      CREATE TABLE IF NOT EXISTS notifications (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        user_id INT,
+        title VARCHAR(255) NOT NULL,
+        message TEXT NOT NULL,
+        type ENUM('reservation', 'order', 'system') NOT NULL,
+        reference_id INT,
+        is_read BOOLEAN DEFAULT FALSE,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+      )
+    `)
+
+    await db.execute(`
+      CREATE TABLE IF NOT EXISTS reviews (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        menu_item_id INT NOT NULL,
+        user_id INT,
+        rating INT CHECK (rating >= 1 AND rating <= 5),
+        comment TEXT,
+        is_favorite BOOLEAN DEFAULT FALSE,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        FOREIGN KEY (menu_item_id) REFERENCES menu_items(id) ON DELETE CASCADE,
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
+      )
+    `)
+
+    // Create admin user if not exists
+    await db.execute(`
+      INSERT IGNORE INTO users (email, password, name, role, provider) 
+      VALUES ('admin@nekmak.com', 'admin9988', 'Admin', 'admin', 'local')
+    `)
+
     // Seed menu items if empty
     const [menuCount] = await db.execute('SELECT COUNT(*) as count FROM menu_items')
     if (menuCount[0].count === 0) {
       const items = [
-        // FOODS
-        { name: 'Traditional Fish Amok', desc: 'Steamed fish in banana leaf with coconut curry', price: 12.00, cat: 'Foods', img: 'Foods/sharonang-fish-amok-921926_1920.jpg' },
-        { name: 'Savory Beef Lok Lak', desc: 'Classic stir-fried beef with lime and pepper', price: 14.00, cat: 'Foods', img: 'Foods/kan_chansathya-khmer-9024474_1920.jpg' },
-        { name: 'Khmer Red Curry', desc: 'Aromatic curry with chicken and sweet potatoes', price: 13.00, cat: 'Foods', img: 'Foods/kan_chansathya-khmer-food-3771719_1920.jpg' },
-        { name: 'Signature Wagyu', desc: 'Premium 12oz Wagyu striploin, bone marrow jus', price: 65.00, cat: 'Foods', img: 'Foods/alex-munsell-auIbTAcSH6E-unsplash.jpg' },
-        { name: 'Grilled Scallops', desc: 'Fresh scallops with garlic butter and herbs', price: 28.00, cat: 'Foods', img: 'Foods/pichara-g-I7PRofUoE-unsplash.jpg' },
-        { name: 'Herb Crusted Salmon', desc: 'Atlantic salmon with garden fresh herbs', price: 32.00, cat: 'Foods', img: 'Foods/alex-munsell-Yr4n8O_3UPc-unsplash.jpg' },
+        // Asia Foods
+        { name: 'Traditional Fish Amok', desc: 'Steamed fish in banana leaf with coconut curry', price: 12.00, cat: 'Foods', cuisine: 'Asia Foods', img: 'AsiaFoods/Foods/sharonang-fish-amok-921926_1920.jpg' },
+        { name: 'Savory Beef Lok Lak', desc: 'Classic stir-fried beef with lime and pepper', price: 14.00, cat: 'Foods', cuisine: 'Asia Foods', img: 'AsiaFoods/Foods/kan_chansathya-khmer-9024474_1920.jpg' },
+        { name: 'Khmer Red Curry', desc: 'Aromatic curry with chicken and sweet potatoes', price: 13.00, cat: 'Foods', cuisine: 'Asia Foods', img: 'AsiaFoods/Foods/kan_chansathya-khmer-food-3771719_1920.jpg' },
+        { name: 'Palm Citrus Cooler', desc: 'Refreshing palm sugar and lime drink', price: 8.00, cat: 'Drinks', cuisine: 'Asia Foods', img: 'AsiaFoods/Drinks/pexels-mdsnmdsnmdsn-2691360.jpg' },
+        { name: 'Coconut Rose Cake', desc: 'Soft sponge with coconut and rose cream', price: 14.00, cat: 'Desserts', cuisine: 'Asia Foods', img: 'AsiaFoods/Desert/image copy 2.png' },
         
-        // DRINKS
-        { name: 'Signature Mojito', desc: 'Fresh mint, lime, and premium white rum', price: 9.00, cat: 'Drinks', img: 'Drinks/rodion-kutsaiev-x4z7GiV5_-0-unsplash.jpg' },
-        { name: 'Cold Brew Fusion', desc: 'Specialty coffee with a hint of vanilla bean', price: 6.50, cat: 'Drinks', img: 'Drinks/kobby-mendez-xBFTjrMIC0c-unsplash.jpg' },
-        { name: 'Citrus Sparkler', desc: 'Zesty blend of orange, lemon, and soda', price: 5.00, cat: 'Drinks', img: 'Drinks/ash-edmonds-fsI-_MRsic0-unsplash.jpg' },
-        { name: 'Berry Refresher', desc: 'Mixed berries with sparkling mineral water', price: 7.00, cat: 'Drinks', img: 'Drinks/svitlana-vexxZA_JNso-unsplash.jpg' },
-        { name: 'Tropical Smoothie', desc: 'Mango, pineapple, and coconut cream blend', price: 8.50, cat: 'Drinks', img: 'Drinks/clovis-wood-iUtcVxqxkPk-unsplash.jpg' },
-
-        // FRUITES
-        { name: 'Dragon Fruit Platter', desc: 'Exotic red and white pitaya selection', price: 10.00, cat: 'Fruites', img: 'Fruites/jonas-kakaroto-5JQH9Iqnm9o-unsplash.jpg' },
-        { name: 'Summer Fruit Medley', desc: 'Fresh seasonal berries and stone fruits', price: 12.00, cat: 'Fruites', img: 'Fruites/brooke-lark-1Rm9GLHV0UA-unsplash.jpg' },
-        { name: 'Exotic Papaya', desc: 'Sun-ripened local papaya with lime squeeze', price: 8.00, cat: 'Fruites', img: 'Fruites/jo-sonn-zeFy-oCUhV8-unsplash.jpg' },
-        { name: 'Citrus Collection', desc: 'Zesty assortment of local citrus fruits', price: 9.50, cat: 'Fruites', img: 'Fruites/arturrro-GdTLaWamFHw-unsplash.jpg' },
-
-        // PIZZA & BUGER
-        { name: 'Truffle Masterpiece', desc: 'Black truffle, wagyu beef, caramelized onions', price: 22.00, cat: 'Pizza&Buger', img: 'Pizza&Buger/martinquijandria-big-2530144_1920.jpg' },
-        { name: 'Artisanal Margherita', desc: 'Buffalo mozzarella, fresh basil, San Marzano', price: 18.00, cat: 'Pizza&Buger', img: 'Pizza&Buger/joshuemd-pizza-329523_1920.jpg' },
-        { name: 'Pepperoni Feast', desc: 'Double-cured pepperoni and spicy chili honey', price: 20.00, cat: 'Pizza&Buger', img: 'Pizza&Buger/hoaluu-pizza-2589569_1920.jpg' },
-        { name: 'Garden Pizza', desc: 'Fresh farm vegetables and ricotta cheese', price: 17.00, cat: 'Pizza&Buger', img: 'Pizza&Buger/engin_akyurt-pizza-5661748_1920.jpg' },
-
-        // SWEETS
-        { name: 'Gold Leaf Matcha', desc: 'Matcha sponge, velvet cream, 24k gold leaf', price: 12.00, cat: 'Sweets', img: 'Sweets/pexels-blueberries-1867398_1920.jpg' },
-        { name: 'Daily Cupcake', desc: 'Handcrafted daily signature cupcake selection', price: 6.00, cat: 'Sweets', img: 'Sweets/cegoh-cupcakes-1133146_1920.jpg' },
-        { name: 'Velvet Pancakes', desc: 'Fluffy pancakes with maple and berries', price: 14.00, cat: 'Sweets', img: 'Sweets/daria-yakovleva-pancakes-2139844_1920.jpg' },
-        { name: 'Chocolate Decadence', desc: 'Rich dark chocolate cake with ganache', price: 11.00, cat: 'Sweets', img: 'Sweets/daria-yakovleva-cake-1971552_1920.jpg' },
-
-        // VEGETERAIN
-        { name: 'Quinoa Garden', desc: 'Organic quinoa, avocado, and garden herbs', price: 15.00, cat: 'Vegeterain', img: 'Vegeterain/joseph-gonzalez-QaGDmf5tMiE-unsplash.jpg' },
-        { name: 'Roasted Harvest', desc: 'Seasonal vegetables with balsamic reduction', price: 14.00, cat: 'Vegeterain', img: 'Vegeterain/ella-olsson-mmnKI8kMxpc-unsplash.jpg' },
-        { name: 'Avocado Toast Luxe', desc: 'Sourdough, poached egg, and microgreens', price: 13.00, cat: 'Vegeterain', img: 'Vegeterain/brooke-lark-jUPOXXRNdcA-unsplash.jpg' },
-
-        // WINES
-        { name: 'Vintage Cabernet', desc: 'Full-bodied red, notes of oak and cherry', price: 65.00, cat: 'Wines', img: 'Wines/matthieu-joannon-6ciLddToTgM-unsplash.jpg' },
-        { name: 'Reserve Chardonnay', desc: 'Crisp white with buttery finish and vanilla', price: 58.00, cat: 'Wines', img: 'Wines/kevin-kelly-PPneSBqfCCU-unsplash.jpg' },
-        { name: 'Sparkling Rose', desc: 'Elegant bubbles with hints of wild berry', price: 72.00, cat: 'Wines', img: 'Wines/aesop-wines-wS7f61WuRZk-unsplash.jpg' }
+        // Europe Foods
+        { name: 'Signature Wagyu', desc: 'Premium 12oz Wagyu striploin, bone marrow jus', price: 65.00, cat: 'Foods', cuisine: 'Europe Foods', img: 'EroupFoods/Foods/alex-munsell-auIbTAcSH6E-unsplash.jpg' },
+        { name: 'Margherita Royale', desc: 'Classic pizza with mozzarella and fresh basil', price: 20.00, cat: 'Pizza', cuisine: 'Europe Foods', img: 'EroupFoods/Pizza/daria-yakovleva-pizza-2068272_1920.jpg' },
+        { name: 'Truffle Masterpiece', desc: 'Black truffle burger with caramelized onions', price: 27.00, cat: 'Burgers', cuisine: 'Europe Foods', img: 'EroupFoods/Burgers/pexels-the-castlebar-3902897-31148909.jpg' },
+        { name: 'Black Gold Linguine', desc: 'Squid ink pasta with scallops and garlic', price: 32.00, cat: 'Pasta', cuisine: 'Europe Foods', img: 'EroupFoods/Pasta/nicholas-grande-d9jcPTRD9fo-unsplash.jpg' },
+        { name: 'Vintage Cabernet', desc: 'Full-bodied red, notes of oak and cherry', price: 65.00, cat: 'Wines', cuisine: 'Europe Foods', img: 'EroupFoods/Wines/matthieu-joannon-6ciLddToTgM-unsplash.jpg' }
       ];
 
-      const values = items.map(i => `('${i.name.replace(/'/g, "''")}', '${i.desc.replace(/'/g, "''")}', ${i.price}, '${i.cat}', '${i.img}')`).join(',');
-      await db.execute(`INSERT INTO menu_items (name, description, price, category, image_url) VALUES ${values}`);
+      for (const i of items) {
+        await db.execute(
+          'INSERT INTO menu_items (name, description, price, category, image_url, cuisine) VALUES (?, ?, ?, ?, ?, ?)',
+          [i.name, i.desc, i.price, i.cat, i.img, i.cuisine]
+        )
+      }
       console.log('Complete menu assets seeded');
     }
   } catch (error) {
     console.error('Database initialization failed:', error.message)
-    console.error('Please ensure MySQL is running and the database "' + process.env.DB_NAME + '" exists.')
   }
 }
 
@@ -214,105 +182,9 @@ app.use(cors({
 }))
 app.use(express.json())
 app.use(passport.initialize())
+app.use('/assets/pictures', express.static(path.join(__dirname, '../Client/src/assets/pictures')))
 
-// Passport Google OAuth Strategy
-passport.use(new GoogleStrategy({
-    clientID: process.env.GOOGLE_CLIENT_ID,
-    clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-    callbackURL: "http://localhost:5001/auth/google/callback"
-  },
-  async (accessToken, refreshToken, profile, done) => {
-    try {
-      const [rows] = await db.execute(
-        'SELECT * FROM users WHERE provider = ? AND provider_id = ?',
-        ['google', profile.id]
-      );
-      if (rows.length > 0) {
-        return done(null, rows[0]);
-      }
-
-      if (!profile.emails || profile.emails.length === 0) {
-        return done(new Error('No email associated with this Google account'), null);
-      }
-      const email = profile.emails[0].value;
-
-      const [existing] = await db.execute(
-        'SELECT * FROM users WHERE email = ?',
-        [email]
-      );
-      if (existing.length > 0) {
-        await db.execute(
-          'UPDATE users SET provider = ?, provider_id = ? WHERE id = ?',
-          ['google', profile.id, existing[0].id]
-        );
-        return done(null, { ...existing[0], provider: 'google', provider_id: profile.id });
-      }
-
-      const [result] = await db.execute(
-        'INSERT INTO users (email, name, provider, provider_id, role) VALUES (?, ?, ?, ?, ?)',
-        [email, profile.displayName, 'google', profile.id, 'user']
-      );
-
-      const [newUser] = await db.execute('SELECT * FROM users WHERE id = ?', [result.insertId]);
-      return done(null, newUser[0]);
-    } catch (error) {
-      return done(error, null);
-    }
-  }
-));
-
-// Passport Apple OAuth Strategy
-passport.use(new AppleStrategy({
-    clientID: process.env.APPLE_CLIENT_ID || 'dummy',
-    teamID: process.env.APPLE_TEAM_ID || 'dummy',
-    keyID: process.env.APPLE_KEY_ID || 'dummy',
-    privateKey: (process.env.APPLE_PRIVATE_KEY || '').replace(/\\n/g, '\n'),
-    callbackURL: "/api/auth/apple/callback"
-  },
-  (issuer, subject, email, accessToken, refreshToken, profile, done) => {
-    (async () => {
-      try {
-        const providerId = subject;
-        const [rows] = await db.execute(
-          'SELECT * FROM users WHERE provider = ? AND provider_id = ?',
-          ['apple', providerId]
-        );
-        if (rows.length > 0) {
-          return done(null, rows[0]);
-        }
-
-        const userEmail = email || `apple_${providerId}@noemail.local`;
-        const displayName = email ? email.split('@')[0] : 'Apple User';
-
-        if (email) {
-          const [existing] = await db.execute(
-            'SELECT * FROM users WHERE email = ?',
-            [email]
-          );
-          if (existing.length > 0) {
-            await db.execute(
-              'UPDATE users SET provider = ?, provider_id = ? WHERE id = ?',
-              ['apple', providerId, existing[0].id]
-            );
-            return done(null, { ...existing[0], provider: 'apple', provider_id: providerId });
-          }
-        }
-
-        const [result] = await db.execute(
-          'INSERT INTO users (email, name, provider, provider_id, role) VALUES (?, ?, ?, ?, ?)',
-          [userEmail, displayName, 'apple', providerId, 'user']
-        );
-
-        const [newUser] = await db.execute('SELECT * FROM users WHERE id = ?', [result.insertId]);
-        return done(null, newUser[0]);
-      } catch (error) {
-        return done(error, null);
-      }
-    })();
-  }
-));
-
-// JWT middleware
+// Auth Middleware
 const authenticateToken = (req, res, next) => {
   const authHeader = req.headers['authorization']
   const token = authHeader && authHeader.split(' ')[1]
@@ -326,7 +198,6 @@ const authenticateToken = (req, res, next) => {
   })
 }
 
-// Admin middleware
 const isAdmin = (req, res, next) => {
   if (req.user.role !== 'admin') {
     return res.status(403).json({ message: 'Admin access required' })
@@ -334,386 +205,292 @@ const isAdmin = (req, res, next) => {
   next()
 }
 
-// Routes
-app.get('/', (req, res) => {
-  res.json({ message: 'NekMak Restaurant API Server' })
-})
+// Passport Strategies
+if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
+  passport.use(new GoogleStrategy({
+    clientID: process.env.GOOGLE_CLIENT_ID,
+    clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+    callbackURL: "http://localhost:5001/auth/google/callback"
+  }, async (accessToken, refreshToken, profile, done) => {
+    try {
+      const email = profile.emails[0].value
+      const [rows] = await db.execute('SELECT * FROM users WHERE email = ?', [email])
+      if (rows.length > 0) {
+        return done(null, rows[0])
+      }
+      const [result] = await db.execute(
+        'INSERT INTO users (email, name, provider, provider_id, role) VALUES (?, ?, ?, ?, ?)',
+        [email, profile.displayName, 'google', profile.id, 'user']
+      )
+      const [newUser] = await db.execute('SELECT * FROM users WHERE id = ?', [result.insertId])
+      return done(null, newUser[0])
+    } catch (error) {
+      return done(error, null)
+    }
+  }))
+}
 
-// Local registration
+// Routes - Auth
 app.post('/api/register', async (req, res) => {
   const { name, email, password } = req.body
-
   try {
-    // Check if user exists
     const [existing] = await db.execute('SELECT * FROM users WHERE email = ?', [email])
-    if (existing.length > 0) {
-      return res.status(400).json({ message: 'User already exists with this email' })
-    }
-
+    if (existing.length > 0) return res.status(400).json({ message: 'User already exists' })
     const [result] = await db.execute(
       'INSERT INTO users (name, email, password, role, provider) VALUES (?, ?, ?, ?, ?)',
       [name, email, password, 'user', 'local']
     )
-
-    const token = jwt.sign(
-      { id: result.insertId, email, role: 'user', name },
-      process.env.JWT_SECRET,
-      { expiresIn: process.env.JWT_EXPIRES_IN }
-    )
-
-    res.status(201).json({ 
-      token, 
-      user: { id: result.insertId, email, name, role: 'user' } 
-    })
+    const token = jwt.sign({ id: result.insertId, email, role: 'user', name }, process.env.JWT_SECRET, { expiresIn: '7d' })
+    res.status(201).json({ token, user: { id: result.insertId, email, name, role: 'user' } })
   } catch (error) {
     res.status(500).json({ message: 'Registration failed' })
   }
 })
 
-// Local login
 app.post('/api/login', async (req, res) => {
   const { email, password } = req.body
-
   try {
-    const [rows] = await db.execute(
-      'SELECT * FROM users WHERE email = ? AND password = ?',
-      [email, password]
-    )
-
-    if (rows.length === 0) {
-      return res.status(401).json({ message: 'Invalid credentials' })
-    }
-
+    const [rows] = await db.execute('SELECT * FROM users WHERE email = ? AND password = ?', [email, password])
+    if (rows.length === 0) return res.status(401).json({ message: 'Invalid credentials' })
     const user = rows[0]
-    const token = jwt.sign(
-      { id: user.id, email: user.email, role: user.role, name: user.name },
-      process.env.JWT_SECRET,
-      { expiresIn: process.env.JWT_EXPIRES_IN }
-    )
-
+    const token = jwt.sign({ id: user.id, email: user.email, role: user.role, name: user.name }, process.env.JWT_SECRET, { expiresIn: '7d' })
     res.json({ token, user: { id: user.id, email: user.email, name: user.name, role: user.role } })
   } catch (error) {
-    res.status(500).json({ message: 'Server error' })
+    res.status(500).json({ message: 'Login failed' })
   }
 })
 
-// Google OAuth
-app.get('/api/auth/google', (req, res, next) => {
-  const origin = req.headers.referer || 'http://localhost:5173';
-  passport.authenticate('google', { 
-    scope: ['profile', 'email'],
-    state: Buffer.from(JSON.stringify({ origin })).toString('base64')
-  })(req, res, next);
-});
+app.get('/api/auth/google', passport.authenticate('google', { scope: ['profile', 'email'] }))
+app.get('/auth/google/callback', passport.authenticate('google', { session: false }), (req, res) => {
+  const token = jwt.sign({ id: req.user.id, email: req.user.email, role: req.user.role, name: req.user.name }, process.env.JWT_SECRET, { expiresIn: '7d' })
+  res.redirect(`http://localhost:5173/auth/callback?token=${token}`)
+})
 
-app.get('/auth/google/callback', (req, res, next) => {
-  passport.authenticate('google', { session: false }, (err, user) => {
-    const stateStr = req.query.state ? Buffer.from(req.query.state, 'base64').toString() : '{}';
-    let state = { origin: 'http://localhost:5173' };
-    try { state = JSON.parse(stateStr); } catch (e) {}
-    
-    const origin = state.origin || 'http://localhost:5173';
-    const baseUrl = origin.includes('5174') ? 'http://localhost:5174' : 'http://localhost:5173';
-
-    if (err || !user) {
-      console.error('Auth Error:', err);
-      return res.redirect(`${baseUrl}/?error=auth_failed`);
-    }
-
-    const token = jwt.sign(
-      { id: user.id, email: user.email, role: user.role, name: user.name },
-      process.env.JWT_SECRET,
-      { expiresIn: process.env.JWT_EXPIRES_IN }
-    )
-    res.redirect(`${baseUrl}/auth/callback?token=${token}`)
-  })(req, res, next);
-});
-
-// Apple OAuth
-app.get('/api/auth/apple', (req, res, next) => {
-  const origin = req.headers.referer || 'http://localhost:5173';
-  passport.authenticate('apple', { 
-    scope: ['name', 'email'],
-    state: Buffer.from(JSON.stringify({ origin })).toString('base64')
-  })(req, res, next);
-});
-
-app.get('/api/auth/apple/callback', (req, res, next) => {
-  passport.authenticate('apple', { session: false }, (err, user) => {
-    const stateStr = req.query.state ? Buffer.from(req.query.state, 'base64').toString() : '{}';
-    let state = { origin: 'http://localhost:5173' };
-    try { state = JSON.parse(stateStr); } catch (e) {}
-    
-    const origin = state.origin || 'http://localhost:5173';
-    const baseUrl = origin.includes('5174') ? 'http://localhost:5174' : 'http://localhost:5173';
-
-    if (err || !user) {
-      console.error('Apple Auth Error:', err);
-      return res.redirect(`${baseUrl}/?error=auth_failed`);
-    }
-
-    const token = jwt.sign(
-      { id: user.id, email: user.email, role: user.role, name: user.name },
-      process.env.JWT_SECRET,
-      { expiresIn: process.env.JWT_EXPIRES_IN }
-    )
-    res.redirect(`${baseUrl}/auth/callback?token=${token}`)
-  })(req, res, next);
-});
-
-// Protected route
+// Routes - User Profile & History
 app.get('/api/profile', authenticateToken, async (req, res) => {
   const [rows] = await db.execute('SELECT id, email, name, role FROM users WHERE id = ?', [req.user.id])
   res.json(rows[0])
 })
 
-// Admin only route
-app.get('/api/admin', authenticateToken, isAdmin, (req, res) => {
-  res.json({ message: 'Admin access granted' })
-})
-
-// Logout
-app.post('/api/logout', (req, res) => {
-  res.json({ message: 'Logged out successfully' })
-})
-
-// Menu routes
-app.get('/api/menu', async (req, res) => {
+app.patch('/api/profile', authenticateToken, async (req, res) => {
+  const { name, email } = req.body
   try {
-    const [rows] = await db.execute(`
-      SELECT 
-        mi.*,
-        ROUND(AVG(r.rating), 1) AS average_rating,
-        COUNT(r.id) AS rating_count
-      FROM menu_items mi
-      LEFT JOIN reviews r ON r.menu_item_id = mi.id
-      WHERE mi.available = TRUE
-      GROUP BY mi.id
-    `)
+    await db.execute('UPDATE users SET name = ?, email = ? WHERE id = ?', [name, email, req.user.id])
+    res.json({ message: 'Profile updated' })
+  } catch (error) {
+    res.status(500).json({ message: 'Update failed' })
+  }
+})
+
+app.get('/api/user/reservations', authenticateToken, async (req, res) => {
+  const [rows] = await db.execute('SELECT * FROM reservations WHERE user_id = ? ORDER BY date DESC, time DESC', [req.user.id])
+  res.json(rows)
+})
+
+app.get('/api/user/orders', authenticateToken, async (req, res) => {
+  try {
+    const [rows] = await db.execute('SELECT * FROM orders WHERE user_id = ? ORDER BY created_at DESC', [req.user.id])
     res.json(rows)
   } catch (error) {
-    res.status(500).json({ message: 'Error fetching menu' })
+    res.status(500).json({ message: 'Failed' })
   }
 })
 
-app.post('/api/menu-items/ensure', authenticateToken, async (req, res) => {
-  const { name, description, price, category, cuisine, imageUrl } = req.body
-
-  if (!name || !price || !category) {
-    return res.status(400).json({ message: 'Name, price, and category are required' })
-  }
-
-  try {
-    const [existing] = await db.execute('SELECT id FROM menu_items WHERE name = ? LIMIT 1', [name])
-    if (existing.length > 0) {
-      await db.execute(
-        'UPDATE menu_items SET description = ?, price = ?, category = ?, cuisine = ?, image_url = ?, available = TRUE WHERE id = ?',
-        [description || '', price, category, cuisine || null, imageUrl || '', existing[0].id]
-      )
-      return res.json({ id: existing[0].id })
-    }
-
-    const [result] = await db.execute(
-      'INSERT INTO menu_items (name, description, price, category, cuisine, image_url, available) VALUES (?, ?, ?, ?, ?, ?, TRUE)',
-      [name, description || '', price, category, cuisine || null, imageUrl || '']
-    )
-
-    res.status(201).json({ id: result.insertId })
-  } catch (error) {
-    console.error('Error ensuring menu item:', error)
-    res.status(500).json({ message: 'Error preparing menu item' })
-  }
+app.get('/api/notifications', authenticateToken, async (req, res) => {
+  const [rows] = await db.execute('SELECT * FROM notifications WHERE user_id = ? ORDER BY created_at DESC LIMIT 20', [req.user.id])
+  res.json(rows)
 })
 
-app.post('/api/orders', authenticateToken, async (req, res) => {
-  const { items, total, paymentMethod, status } = req.body
-  const userId = req.user.id
-
-  if (!Array.isArray(items) || items.length === 0) {
-    return res.status(400).json({ message: 'Order must include at least one item' })
-  }
-
-  const orderStatus = status === 'paid' ? 'paid' : 'pending'
-
-  const connection = await db.getConnection()
-  try {
-    await connection.beginTransaction()
-
-    const [orderResult] = await connection.execute(
-      'INSERT INTO orders (user_id, total, payment_method, status) VALUES (?, ?, ?, ?)',
-      [userId, total, paymentMethod || 'khqr', orderStatus]
-    )
-
-    for (const item of items) {
-      let menuItemId = item.menuItemId || null
-
-      if (!menuItemId) {
-        const [existing] = await connection.execute('SELECT id FROM menu_items WHERE name = ? LIMIT 1', [item.name])
-        if (existing.length > 0) {
-          menuItemId = existing[0].id
-        } else {
-          const [created] = await connection.execute(
-            'INSERT INTO menu_items (name, description, price, category, image_url, available) VALUES (?, ?, ?, ?, ?, TRUE)',
-            [item.name, '', item.price, 'Order', item.image_url || '']
-          )
-          menuItemId = created.insertId
-        }
-      }
-
-      await connection.execute(
-        'INSERT INTO order_items (order_id, menu_item_id, name, price, quantity, image_url) VALUES (?, ?, ?, ?, ?, ?)',
-        [orderResult.insertId, menuItemId, item.name, item.price, item.quantity, item.image_url || '']
-      )
-    }
-
-    await connection.commit()
-    res.status(201).json({ id: orderResult.insertId, status: orderStatus, message: 'Order created successfully' })
-  } catch (error) {
-    await connection.rollback()
-    console.error('Error creating order:', error)
-    res.status(500).json({ message: 'Error creating order' })
-  } finally {
-    connection.release()
-  }
+app.patch('/api/notifications/:id/read', authenticateToken, async (req, res) => {
+  await db.execute('UPDATE notifications SET is_read = TRUE WHERE id = ? AND user_id = ?', [req.params.id, req.user.id])
+  res.json({ message: 'Read' })
 })
 
-// Reservation routes
+// Routes - Menu & Reservations
+app.get('/api/menu', async (req, res) => {
+  const [rows] = await db.execute('SELECT * FROM menu_items WHERE available = TRUE')
+  res.json(rows)
+})
+
 app.post('/api/reservations', authenticateToken, async (req, res) => {
   const { date, time, guests, name, email, phone, specialRequests } = req.body
-  const userId = req.user.id
-
   try {
-    await db.execute(
+    const [result] = await db.execute(
       'INSERT INTO reservations (user_id, date, time, guests, name, email, phone, special_requests) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-      [userId, date, time, guests, name, email, phone, specialRequests]
+      [req.user.id, date, time, guests, name, email, phone, specialRequests]
     )
-    res.status(201).json({ message: 'Reservation created successfully' })
+    
+    // Notify admin
+    const [admins] = await db.execute('SELECT id FROM users WHERE role = "admin" LIMIT 1')
+    if (admins.length > 0) {
+      await db.execute(
+        'INSERT INTO notifications (user_id, title, message, type, reference_id) VALUES (?, ?, ?, ?, ?)',
+        [admins[0].id, 'New Reservation', `${name} for ${guests} people on ${date}`, 'reservation', result.insertId]
+      )
+    }
+    res.status(201).json({ message: 'Reservation created' })
   } catch (error) {
-    res.status(500).json({ message: 'Error creating reservation' })
+    res.status(500).json({ message: 'Failed to create reservation' })
   }
 })
 
-// Admin: Get all reservations
+// Routes - Admin
 app.get('/api/admin/reservations', authenticateToken, isAdmin, async (req, res) => {
+  const [rows] = await db.execute('SELECT * FROM reservations ORDER BY created_at DESC')
+  res.json(rows)
+})
+
+app.patch('/api/admin/reservations/:id', authenticateToken, isAdmin, async (req, res) => {
+  const { status } = req.body
   try {
-    const [rows] = await db.execute('SELECT * FROM reservations ORDER BY date DESC, time DESC')
+    const [resv] = await db.execute('SELECT user_id, date FROM reservations WHERE id = ?', [req.params.id])
+    await db.execute('UPDATE reservations SET status = ? WHERE id = ?', [status, req.params.id])
+    
+    // Notify customer
+    if (resv.length > 0) {
+      const title = status === 'confirmed' ? 'Booking Accepted!' : 'Booking Status Update'
+      const msg = status === 'confirmed' 
+        ? `Your booking for ${resv[0].date} has been accepted.` 
+        : `Your booking for ${resv[0].date} is ${status}.`
+      await db.execute(
+        'INSERT INTO notifications (user_id, title, message, type, reference_id) VALUES (?, ?, ?, ?, ?)',
+        [resv[0].user_id, title, msg, 'reservation', req.params.id]
+      )
+    }
+    res.json({ message: 'Updated' })
+  } catch (error) {
+    res.status(500).json({ message: 'Failed' })
+  }
+})
+
+app.patch('/api/admin/orders/:id', authenticateToken, isAdmin, async (req, res) => {
+  const newStatus = req.body.status
+  if (!newStatus) return res.status(400).json({ message: 'Status is required' })
+  try {
+    const [order] = await db.execute('SELECT user_id, total FROM orders WHERE id = ?', [req.params.id])
+    if (order.length === 0) return res.status(404).json({ message: 'Order not found' })
+
+    await db.execute('UPDATE orders SET status = ? WHERE id = ?', [newStatus, req.params.id])
+    
+    // Notify customer
+    const title = newStatus === 'paid' ? 'Order Accepted!' : 'Order Status Update'
+    const msg = newStatus === 'paid' 
+      ? `Your order #${req.params.id} for $${order[0].total} has been accepted and is being prepared.` 
+      : `Your order #${req.params.id} has been ${newStatus}.`
+    
+    await db.execute(
+      'INSERT INTO notifications (user_id, title, message, type, reference_id) VALUES (?, ?, ?, ?, ?)',
+      [order[0].user_id, title, msg, 'order', req.params.id]
+    )
+
+    res.json({ message: 'Order status updated' })
+  } catch (error) {
+    console.error('Error updating order status:', error)
+    res.status(500).json({ message: 'Failed' })
+  }
+})
+
+app.get('/api/admin/users', authenticateToken, isAdmin, async (req, res) => {
+  try {
+    const [rows] = await db.execute('SELECT id, name, email, role FROM users')
     res.json(rows)
   } catch (error) {
-    res.status(500).json({ message: 'Error fetching reservations' })
+    res.status(500).json({ message: 'Failed to load users' })
   }
 })
 
 app.get('/api/admin/orders', authenticateToken, isAdmin, async (req, res) => {
   try {
     const [orders] = await db.execute(`
-      SELECT
-        o.id,
-        o.total,
-        o.payment_method,
-        o.status,
-        o.created_at,
-        u.name AS customer_name,
-        u.email AS customer_email
+      SELECT o.*, u.name AS customer_name, u.email AS customer_email
       FROM orders o
       LEFT JOIN users u ON u.id = o.user_id
       ORDER BY o.created_at DESC
-      LIMIT 50
     `)
-
-    const [items] = await db.execute(`
-      SELECT order_id, name, price, quantity
-      FROM order_items
-      ORDER BY id ASC
-    `)
-
-    const itemsByOrder = items.reduce((lookup, item) => {
-      if (!lookup[item.order_id]) lookup[item.order_id] = []
-      lookup[item.order_id].push({
-        name: item.name,
-        price: Number(item.price),
-        quantity: item.quantity,
-      })
-      return lookup
-    }, {})
-
-    res.json(orders.map(order => ({
-      ...order,
-      total: Number(order.total),
-      items: itemsByOrder[order.id] || [],
-    })))
+    res.json(orders)
   } catch (error) {
-    console.error('Error fetching admin orders:', error)
-    res.status(500).json({ message: 'Error fetching orders' })
+    res.status(500).json({ message: 'Failed' })
+  }
+})
+
+app.get('/api/admin/menu', authenticateToken, isAdmin, async (req, res) => {
+  try {
+    const [rows] = await db.execute('SELECT * FROM menu_items ORDER BY created_at DESC')
+    res.json(rows)
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to load menu items' })
+  }
+})
+
+app.post('/api/admin/menu', authenticateToken, isAdmin, async (req, res) => {
+  const { name, description, price, category, image_url, cuisine } = req.body
+  try {
+    await db.execute(
+      'INSERT INTO menu_items (name, description, price, category, image_url, cuisine) VALUES (?, ?, ?, ?, ?, ?)',
+      [name, description, price, category, image_url, cuisine || 'International']
+    )
+    res.status(201).json({ message: 'Created' })
+  } catch (error) {
+    res.status(500).json({ message: 'Failed' })
+  }
+})
+
+app.put('/api/admin/menu/:id', authenticateToken, isAdmin, async (req, res) => {
+  const { name, description, price, category, image_url, cuisine } = req.body
+  try {
+    await db.execute(
+      'UPDATE menu_items SET name = ?, description = ?, price = ?, category = ?, image_url = ?, cuisine = ? WHERE id = ?',
+      [name, description, price, category, image_url, cuisine, req.params.id]
+    )
+    res.json({ message: 'Updated' })
+  } catch (error) {
+    res.status(500).json({ message: 'Failed' })
+  }
+})
+
+app.delete('/api/admin/menu/:id', authenticateToken, isAdmin, async (req, res) => {
+  try {
+    const [result] = await db.execute('DELETE FROM menu_items WHERE id = ?', [req.params.id])
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: 'Menu item not found' })
+    }
+    res.json({ message: 'Deleted successfully' })
+  } catch (error) {
+    console.error('Error deleting menu item:', error)
+    res.status(500).json({ message: 'Failed to delete menu item' })
+  }
+})
+
+app.patch('/api/admin/menu/:id/toggle', authenticateToken, isAdmin, async (req, res) => {
+  try {
+    const [item] = await db.execute('SELECT available FROM menu_items WHERE id = ?', [req.params.id])
+    if (item.length === 0) {
+      return res.status(404).json({ message: 'Menu item not found' })
+    }
+    await db.execute('UPDATE menu_items SET available = ? WHERE id = ?', [!item[0].available, req.params.id])
+    res.json({ message: 'Toggled', available: !item[0].available })
+  } catch (error) {
+    console.error('Error toggling availability:', error)
+    res.status(500).json({ message: 'Failed to toggle availability' })
+  }
+})
+
+app.post('/api/admin/upload-image', authenticateToken, isAdmin, async (req, res) => {
+  try {
+    const { filename, base64Data } = req.body
+    if (!filename || !base64Data) {
+      return res.status(400).json({ message: 'Filename and base64Data are required' })
+    }
+    const imagePath = `Dishes/${filename}`
+    res.json({ message: 'Image uploaded', image_url: imagePath })
+  } catch (error) {
+    console.error('Error uploading image:', error)
+    res.status(500).json({ message: 'Failed to upload image' })
   }
 })
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`)
-})
-
-// Review routes
-app.post('/api/reviews', authenticateToken, async (req, res) => {
-  const { menuItemId, rating, comment, isFavorite } = req.body
-  const userId = req.user.id
-
-  try {
-    // Check if review already exists for this user and menu item
-    const [existing] = await db.execute('SELECT * FROM reviews WHERE menu_item_id = ? AND user_id = ?', [menuItemId, userId])
-
-    if (existing.length > 0) {
-      // Update existing review
-      await db.execute('UPDATE reviews SET rating = ?, comment = ?, is_favorite = ?, updated_at = CURRENT_TIMESTAMP WHERE menu_item_id = ? AND user_id = ?', [rating, comment, isFavorite, menuItemId, userId])
-      res.json({ message: 'Review updated successfully' })
-    } else {
-      // Create new review
-      await db.execute('INSERT INTO reviews (menu_item_id, user_id, rating, comment, is_favorite) VALUES (?, ?, ?, ?, ?)', [menuItemId, userId, rating, comment, isFavorite])
-      res.status(201).json({ message: 'Review created successfully' })
-    }
-  } catch (error) {
-    console.error('Error handling review:', error)
-    res.status(500).json({ message: 'Error processing review' })
-  }
-})
-
-app.get('/api/reviews/summary', async (req, res) => {
-  try {
-    const [rows] = await db.execute(`
-      SELECT
-        mi.id AS menu_item_id,
-        mi.name,
-        ROUND(AVG(r.rating), 1) AS average_rating,
-        COUNT(r.id) AS rating_count
-      FROM menu_items mi
-      LEFT JOIN reviews r ON r.menu_item_id = mi.id
-      GROUP BY mi.id, mi.name
-    `)
-    res.json(rows)
-  } catch (error) {
-    console.error('Error fetching review summary:', error)
-    res.status(500).json({ message: 'Error fetching review summary' })
-  }
-})
-
-app.get('/api/reviews/menu/:menuItemId', async (req, res) => {
-  const { menuItemId } = req.params
-
-  try {
-    const [rows] = await db.execute('SELECT r.*, u.name as user_name FROM reviews r JOIN users u ON r.user_id = u.id WHERE r.menu_item_id = ? ORDER BY r.created_at DESC', [menuItemId])
-    res.json(rows)
-  } catch (error) {
-    console.error('Error fetching reviews:', error)
-    res.status(500).json({ message: 'Error fetching reviews' })
-  }
-})
-
-app.get('/api/reviews/user', authenticateToken, async (req, res) => {
-  const userId = req.user.id
-
-  try {
-    const [rows] = await db.execute('SELECT r.*, mi.name as menu_item_name FROM reviews r JOIN menu_items mi ON r.menu_item_id = mi.id WHERE r.user_id = ? ORDER BY r.created_at DESC', [userId])
-    res.json(rows)
-  } catch (error) {
-    console.error('Error fetching user reviews:', error)
-    res.status(500).json({ message: 'Error fetching user reviews' })
-  }
+  console.log(`Admin routes available at http://localhost:${PORT}/api/admin/*`)
+  console.log(`Image upload available at http://localhost:${PORT}/api/admin/upload-image`)
 })

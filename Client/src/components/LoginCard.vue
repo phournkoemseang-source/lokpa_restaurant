@@ -42,7 +42,11 @@ async function handleSubmit() {
 
     if (response.ok) {
       authStore.setAuth(data)
-      router.push({ name: 'home' })
+      if (data.user.role === 'admin') {
+        router.push({ name: 'admin' })
+      } else {
+        router.push({ name: 'home' })
+      }
     } else {
       error.value = data.message || 'Authentication failed'
     }

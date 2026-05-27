@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { ShoppingBag, Menu, X, LogOut } from 'lucide-vue-next'
-import { ref, computed } from 'vue'
+import { ShoppingBag, Menu, X, LogOut, Bell, User } from 'lucide-vue-next'
+import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useCartStore } from '@/stores/cart'
@@ -10,6 +10,30 @@ const router = useRouter()
 const authStore = useAuthStore()
 const cartStore = useCartStore()
 const isMobileMenuOpen = ref(false)
+const notifications = ref<any[]>([])
+const unreadCount = computed(() => notifications.value.filter(n => !n.is_read).length)
+
+const fetchNotifications = async () => {
+  if (!authStore.isAuthenticated) return
+  try {
+    const response = await fetch('http://localhost:5001/api/notifications', {
+      headers: { Authorization: `Bearer ${authStore.token}` }
+    })
+    if (response.ok) {
+      notifications.value = await response.json()
+    }
+  } catch (error) {
+    console.error('Failed to fetch notifications:', error)
+  }
+}
+
+onMounted(() => {
+  if (authStore.isAuthenticated) {
+    fetchNotifications()
+    // Poll for notifications every minute
+    setInterval(fetchNotifications, 60000)
+  }
+})
 
 const navLinks = computed(() => {
   const links = [{ name: 'Home', path: '/' }]
@@ -77,6 +101,29 @@ function handleLogout() {
         
         <!-- Show logout/cart button -->
         <div class="flex items-center gap-6">
+          <!-- Notification Bell -->
+          <router-link
+            v-if="authStore.isAuthenticated"
+            to="/profile"
+            class="relative text-gold hover:text-gold-light transition-colors duration-300"
+            aria-label="Notifications"
+          >
+            <Bell :size="22" :stroke-width="1.5" />
+            <span v-if="unreadCount > 0" class="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[8px] font-black text-white animate-pulse">
+              {{ unreadCount }}
+            </span>
+          </router-link>
+
+          <!-- Profile Link -->
+          <router-link
+            v-if="authStore.isAuthenticated"
+            to="/profile"
+            class="text-gold hover:text-gold-light transition-colors duration-300"
+            aria-label="Profile"
+          >
+            <User :size="22" :stroke-width="1.5" />
+          </router-link>
+
           <button
             @click="cartStore.toggleCart()"
             class="relative text-gold hover:text-gold-light transition-colors duration-300"

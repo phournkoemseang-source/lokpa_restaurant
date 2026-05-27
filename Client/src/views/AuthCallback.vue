@@ -28,7 +28,11 @@ onMounted(() => {
           role: payload.role
         }
       })
-      router.push({ name: 'home' })
+      if (payload.role === 'admin') {
+        router.push({ name: 'admin' })
+      } else {
+        router.push({ name: 'home' })
+      }
     } catch (e) {
       router.push({ name: 'home' })
     }

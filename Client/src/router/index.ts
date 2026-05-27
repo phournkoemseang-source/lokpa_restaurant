@@ -5,6 +5,7 @@ import ReservationsView from '@/views/ReservationsView.vue'
 import ExperienceView from '@/views/ExperienceView.vue'
 import ContactView from '@/views/ContactView.vue'
 import AdminView from '@/views/AdminView.vue'
+import ProfileView from '@/views/ProfileView.vue'
 import AuthCallback from '@/views/AuthCallback.vue'
 import { useAuthStore } from '@/stores/auth'
 
@@ -32,6 +33,12 @@ const router = createRouter({
       path: '/reservations',
       name: 'reservations',
       component: ReservationsView,
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/profile',
+      name: 'profile',
+      component: ProfileView,
       meta: { requiresAuth: true },
     },
     {

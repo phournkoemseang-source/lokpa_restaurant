@@ -57,6 +57,7 @@ const addItem = () => {
         :alt="item.name"
         class="h-56 w-full object-cover transition-transform duration-700 group-hover:scale-105"
         loading="lazy"
+        decoding="async"
       />
       <div class="absolute inset-0 bg-gradient-to-t from-base-dark/45 via-transparent to-transparent"></div>
       <span
@@ -102,6 +103,8 @@ const addItem = () => {
 }
 
 .menu-card {
+  content-visibility: auto;
+  contain-intrinsic-size: 1px 560px;
   background-image:
     radial-gradient(circle at 15% 0%, rgba(212, 175, 55, 0.08), transparent 30%),
     linear-gradient(145deg, rgba(255, 255, 255, 0.035), transparent 45%);

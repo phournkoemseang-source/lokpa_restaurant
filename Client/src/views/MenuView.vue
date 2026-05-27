@@ -39,7 +39,7 @@ const imageModules = import.meta.glob('../assets/pictures/**/*.{jpg,jpeg,png}', 
 const cartStore = useCartStore()
 const authStore = useAuthStore()
 const activeCuisine = ref<Cuisine>('Asia Foods')
-const activeCategory = ref('foods')
+const activeCategory = ref('all')
 const searchQuery = ref('')
 const selectedItem = ref<MenuItem | null>(null)
 const selectedRating = ref(0)
@@ -65,6 +65,7 @@ const cuisineOptions = [
 
 const categoryOptions: Record<Cuisine, CategoryOption[]> = {
   'Asia Foods': [
+    { key: 'all', label: 'All', folder: 'AsiaFoods/Foods', description: 'Experience the full range of our Asian culinary journey.' },
     { key: 'foods', label: 'Foods', folder: 'AsiaFoods/Foods', description: 'Khmer classics, seafood, rice plates, and warm Asian spices.' },
     { key: 'drinks', label: 'Drinks', folder: 'AsiaFoods/Drinks', description: 'Tea, citrus coolers, coffee, and dinner-friendly house pours.' },
     { key: 'desserts', label: 'Desserts', folder: 'AsiaFoods/Desert', description: 'Coconut, palm sugar, fruit, and soft pastry finishes.' },
@@ -73,6 +74,7 @@ const categoryOptions: Record<Cuisine, CategoryOption[]> = {
     { key: 'wines', label: 'Wines', folder: 'AsiaFoods/Wines', description: 'Pairing bottles and cellar selections for Asian tasting menus.' },
   ],
   'Europe Foods': [
+    { key: 'all', label: 'All', folder: 'EroupFoods/Foods', description: 'Explore our complete collection of European-inspired flavors.' },
     { key: 'foods', label: 'Foods', folder: 'EroupFoods/Foods', description: 'Roasted meats and refined European comfort plates.' },
     { key: 'pizza', label: 'Pizza', folder: 'EroupFoods/Pizza', description: 'Stone-baked pizzas with cheese, herbs, char, and rich sauces.' },
     { key: 'burgers', label: 'Burgers', folder: 'EroupFoods/Burgers', description: 'Stacked burgers with brioche, cheese, pepper relish, and crisp greens.' },
@@ -182,60 +184,121 @@ const categoryNamePools: Record<Cuisine, Record<string, string[]>> = {
   },
 }
 
-const folderImages = (folder: string) =>
-  Object.entries(imageModules)
-    .filter(([path]) => path.includes(`/pictures/${folder}/`))
+const serverItems = ref<MenuItem[]>([])
+const isLoading = ref(true)
+
+const imageSrc = (url: string | null | undefined) => {
+  if (!url) return ''
+  if (url.startsWith('http')) return url
+  // Try to find in local image modules first for better performance/bundling
+  const localMatch = Object.entries(imageModules).find(([path]) => path.includes(url))
+  if (localMatch) return localMatch[1]
+  return `http://localhost:5001/assets/pictures/${url}`
+}
+
+const fetchMenuItems = async () => {
+  isLoading.value = true
+  try {
+    const response = await fetch('http://localhost:5001/api/menu')
+    if (response.ok) {
+      const data = await response.json()
+      serverItems.value = data.map((item: any) => ({
+        ...item,
+        price: Number(item.price),
+        imageSrc: imageSrc(item.image_url),
+        available: Boolean(item.available),
+        rating: ratingSummaries.value[item.name]?.averageRating ?? null,
+        ratingCount: ratingSummaries.value[item.name]?.ratingCount ?? 0,
+      }))
+    }
+  } catch (error) {
+    console.error('Failed to fetch menu items:', error)
+  } finally {
+    isLoading.value = false
+  }
+}
+
+// Cache for folder images to avoid repeated filtering
+const folderImagesCache = new Map<string, Array<{ path: string; src: string }>>()
+
+const getFolderImages = (folder: string) => {
+  if (folderImagesCache.has(folder)) {
+    return folderImagesCache.get(folder)!
+  }
+  // Normalize folder path for matching
+  const normalizedFolder = folder.replace(/\/$/, '')
+  const images = Object.entries(imageModules)
+    .filter(([path]) => path.includes(`pictures/${normalizedFolder}/`))
     .sort(([a], [b]) => a.localeCompare(b))
     .map(([path, src]) => ({
-      path: path.split('/pictures/')[1] || '',
+      path: path.split('pictures/')[1] || '',
       src,
     }))
+  folderImagesCache.set(folder, images)
+  return images
+}
 
 const dishNameFor = (cuisine: Cuisine, categoryKey: string, index: number) => {
-  const names = categoryNamePools[cuisine][categoryKey] || ['NekMak Plate']
+  const pools = categoryNamePools[cuisine] || {}
+  const names = pools[categoryKey] || ['NekMak Plate']
   return names[index % names.length]
 }
 
 const imageFor = (folder: string, index: number) => {
-  const images = folderImages(folder)
-  return images[index % Math.max(images.length, 1)] || { path: '', src: '' }
+  const images = getFolderImages(folder)
+  if (images.length === 0) return { path: '', src: '' }
+  return images[index % images.length]
 }
 
-const buildItems = (cuisine: Cuisine, category: CategoryOption): MenuItem[] => {
-  const copy = dishCopy[cuisine][category.key] || []
-  const images = folderImages(category.folder)
+const buildLocalItems = (cuisine: Cuisine, category: CategoryOption): MenuItem[] => {
+  if (category.key === 'all') return []
+  const copy = (dishCopy[cuisine] && dishCopy[cuisine][category.key]) || []
+  const images = getFolderImages(category.folder)
   const total = Math.max(images.length, copy.length)
+
+  if (total === 0) return []
 
   return Array.from({ length: total }, (_, index) => {
     const template = copy[index % Math.max(copy.length, 1)]
     const image = images[index] || imageFor(category.folder, index)
-    const item = template || {
-      name: dishNameFor(cuisine, category.key, index),
-      description: category.description,
-      price: cuisine === 'Asia Foods' ? 14 + (index % 6) * 3 : 18 + (index % 7) * 4,
-    }
+    const name = index < copy.length ? template.name : dishNameFor(cuisine, category.key, index)
 
     return {
-      ...item,
-      name: index < copy.length ? item.name : dishNameFor(cuisine, category.key, index),
       id: (cuisine === 'Asia Foods' ? 10000 : 20000) + category.key.length * 100 + index,
+      name,
+      description: template?.description || category.description,
+      price: template?.price || (cuisine === 'Asia Foods' ? 14 + (index % 6) * 3 : 18 + (index % 7) * 4),
+      badge: template?.badge,
       category: category.label,
       cuisine,
       image_url: image.path,
       imageSrc: image.src,
       available: true,
-      menuItemId: ratingSummaries.value[item.name]?.menuItemId,
-      rating: ratingSummaries.value[item.name]?.averageRating ?? null,
-      ratingCount: ratingSummaries.value[item.name]?.ratingCount ?? 0,
+      menuItemId: ratingSummaries.value[name]?.menuItemId,
+      rating: ratingSummaries.value[name]?.averageRating ?? null,
+      ratingCount: ratingSummaries.value[name]?.ratingCount ?? 0,
     }
   })
 }
 
-const allItems = computed<MenuItem[]>(() =>
-  (Object.keys(categoryOptions) as Cuisine[]).flatMap((cuisine) =>
-    categoryOptions[cuisine].flatMap((category) => buildItems(cuisine, category))
-  )
-)
+const allItems = computed<MenuItem[]>(() => {
+  const items: MenuItem[] = [...serverItems.value]
+  
+  // Add local items if they don't exist in server items (by name)
+  const serverNames = new Set(serverItems.value.map(i => i.name.toLowerCase()))
+  
+  for (const cuisine of Object.keys(categoryOptions) as Cuisine[]) {
+    for (const category of categoryOptions[cuisine]) {
+      const locals = buildLocalItems(cuisine, category)
+      for (const local of locals) {
+        if (!serverNames.has(local.name.toLowerCase())) {
+          items.push(local)
+        }
+      }
+    }
+  }
+  return items
+})
 
 const selectedCuisine = computed(() => cuisineOptions.find((cuisine) => cuisine.name === activeCuisine.value) || cuisineOptions[0])
 const currentCategories = computed(() => categoryOptions[activeCuisine.value])
@@ -244,7 +307,7 @@ const selectedCategory = computed(() => currentCategories.value.find((category) 
 const cuisineTiles = computed(() =>
   cuisineOptions.map((cuisine) => {
     const image = imageFor(cuisine.imageFolder, 0)
-    const count = categoryOptions[cuisine.name].reduce((total, category) => total + buildItems(cuisine.name, category).length, 0)
+    const count = allItems.value.filter(i => i.cuisine === cuisine.name).length
     return { ...cuisine, count, imageSrc: image.src }
   })
 )
@@ -252,17 +315,26 @@ const cuisineTiles = computed(() =>
 const categoryTiles = computed(() =>
   currentCategories.value.map((category) => {
     const image = imageFor(category.folder, 0)
+    const total = category.key === 'all' 
+      ? allItems.value.filter(i => i.cuisine === activeCuisine.value).length
+      : allItems.value.filter(i => i.cuisine === activeCuisine.value && i.category.toLowerCase() === category.label.toLowerCase()).length
     return {
       ...category,
       imageSrc: image.src,
-      total: buildItems(activeCuisine.value, category).length,
+      total,
     }
   })
 )
 
 const displayedItems = computed(() => {
   const query = searchQuery.value.trim().toLowerCase()
-  let items = buildItems(activeCuisine.value, selectedCategory.value)
+  const categoryLabel = selectedCategory.value.label.toLowerCase()
+  
+  let items = allItems.value.filter(i => i.cuisine === activeCuisine.value)
+  
+  if (activeCategory.value !== 'all') {
+    items = items.filter(i => i.category.toLowerCase() === categoryLabel)
+  }
 
   if (query) {
     items = allItems.value.filter((item) =>
@@ -274,6 +346,28 @@ const displayedItems = computed(() => {
   }
 
   return items
+})
+
+const itemsByCategory = computed(() => {
+  const groups: Record<string, MenuItem[]> = {}
+  const items = displayedItems.value
+  
+  items.forEach(item => {
+    if (!groups[item.category]) {
+      groups[item.category] = []
+    }
+    groups[item.category].push(item)
+  })
+  
+  // Sort groups by their appearance in currentCategories
+  const sortedGroups: Array<{ label: string; items: MenuItem[] }> = []
+  currentCategories.value.forEach(cat => {
+    if (groups[cat.label]) {
+      sortedGroups.push({ label: cat.label, items: groups[cat.label] })
+    }
+  })
+  
+  return sortedGroups
 })
 
 const selectCuisine = (cuisine: Cuisine) => {
@@ -389,7 +483,11 @@ const submitRating = async () => {
   }
 }
 
-onMounted(refreshRatingSummaries)
+onMounted(async () => {
+  await refreshRatingSummaries()
+  await fetchMenuItems()
+})
+
 </script>
 
 <template>
@@ -495,19 +593,27 @@ onMounted(refreshRatingSummaries)
       <div class="mb-12 flex flex-col justify-between gap-6 md:flex-row md:items-end">
         <div>
           <p class="text-[10px] font-black uppercase tracking-[0.35em] text-gold">{{ selectedCuisine.name }}</p>
-          <h2 class="mt-3 font-serif text-4xl md:text-6xl">{{ searchQuery ? 'Search Results' : selectedCategory.label }}</h2>
+          <h2 class="mt-3 font-serif text-4xl md:text-6xl">{{ searchQuery ? 'Search Results' : (activeCategory === 'all' ? 'All Delicacies' : selectedCategory.label) }}</h2>
           <p class="mt-4 max-w-2xl text-sm leading-7 text-white/58">{{ selectedCategory.description }}</p>
         </div>
         <p class="text-sm uppercase tracking-[0.25em] text-text-muted">Showing {{ displayedItems.length }} cards</p>
       </div>
 
-      <div v-if="displayedItems.length > 0" class="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3 lg:gap-10">
-        <MenuCard
-          v-for="item in displayedItems"
-          :key="item.id"
-          :item="item"
-          @show-detail="openDetail(item)"
-        />
+      <div v-if="displayedItems.length > 0">
+        <div v-for="group in itemsByCategory" :key="group.label" class="mb-20 last:mb-0">
+          <div v-if="activeCategory === 'all' || searchQuery" class="mb-10 flex items-center gap-6">
+            <h3 class="font-serif text-3xl text-gold">{{ group.label }}</h3>
+            <div class="h-px flex-1 bg-gold/10"></div>
+          </div>
+          <div class="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3 lg:gap-10">
+            <MenuCard
+              v-for="item in group.items"
+              :key="item.id"
+              :item="item"
+              @show-detail="openDetail(item)"
+            />
+          </div>
+        </div>
       </div>
 
       <div v-else class="space-y-8 py-32 text-center">
@@ -517,7 +623,7 @@ onMounted(refreshRatingSummaries)
         <div class="space-y-4">
           <p class="font-serif text-4xl text-white">No Matching Dishes</p>
           <p class="mx-auto max-w-md italic text-text-muted">Try another category or clear your search.</p>
-          <button @click="searchQuery = ''" class="text-xs font-bold uppercase tracking-widest text-gold hover:underline">Clear Search</button>
+          <button @click="searchQuery = ''; activeCategory = 'all'" class="text-xs font-bold uppercase tracking-widest text-gold hover:underline">Clear Search</button>
         </div>
       </div>
     </section>
