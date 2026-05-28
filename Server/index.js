@@ -5,6 +5,7 @@ import mysql from 'mysql2/promise'
 import jwt from 'jsonwebtoken'
 import passport from 'passport'
 import path from 'path'
+import fs from 'fs'
 import { fileURLToPath } from 'url'
 import { Strategy as GoogleStrategy } from 'passport-google-oauth20'
 import { Strategy as AppleStrategy } from 'passport-apple'
@@ -180,7 +181,8 @@ app.use(cors({
   origin: ['http://localhost:5173', 'http://localhost:5174', 'http://127.0.0.1:5173', 'http://127.0.0.1:5174'],
   credentials: true
 }))
-app.use(express.json())
+app.use(express.json({ limit: '50mb' }))
+app.use(express.urlencoded({ limit: '50mb', extended: true }))
 app.use(passport.initialize())
 app.use('/assets/pictures', express.static(path.join(__dirname, '../Client/src/assets/pictures')))
 
@@ -312,6 +314,61 @@ app.get('/api/menu', async (req, res) => {
   res.json(rows)
 })
 
+// Ensure menu item exists (used by rating flow)
+app.post('/api/menu-items/ensure', authenticateToken, async (req, res) => {
+  try {
+    const { name, description, price, category, cuisine, imageUrl } = req.body
+    if (!name) return res.status(400).json({ message: 'Name required' })
+
+    // Try find existing
+    const [found] = await db.execute('SELECT id FROM menu_items WHERE name = ? LIMIT 1', [name])
+    if (found.length > 0) {
+      return res.json({ id: found[0].id })
+    }
+
+    const [result] = await db.execute(
+      'INSERT INTO menu_items (name, description, price, category, cuisine, image_url) VALUES (?, ?, ?, ?, ?, ?)',
+      [name, description || null, price || 0, category || 'Foods', cuisine || 'International', imageUrl || null]
+    )
+    res.status(201).json({ id: result.insertId })
+  } catch (error) {
+    console.error('Error ensuring menu item:', error)
+    res.status(500).json({ message: 'Failed to ensure menu item' })
+  }
+})
+
+// Submit a review for a menu item
+app.post('/api/reviews', authenticateToken, async (req, res) => {
+  try {
+    const { menuItemId, rating, comment, isFavorite } = req.body
+    if (!menuItemId || !rating) return res.status(400).json({ message: 'menuItemId and rating required' })
+    const r = Number(rating)
+    if (r < 1 || r > 5) return res.status(400).json({ message: 'Rating must be between 1 and 5' })
+
+    await db.execute('INSERT INTO reviews (menu_item_id, user_id, rating, comment, is_favorite) VALUES (?, ?, ?, ?, ?)', [menuItemId, req.user?.id || null, r, comment || null, isFavorite ? 1 : 0])
+    res.status(201).json({ message: 'Review saved' })
+  } catch (error) {
+    console.error('Error saving review:', error)
+    res.status(500).json({ message: 'Failed to save review' })
+  }
+})
+
+// Review summaries (average rating, count) per menu item
+app.get('/api/reviews/summary', async (req, res) => {
+  try {
+    const [rows] = await db.execute(`
+      SELECT m.name, r.menu_item_id, ROUND(AVG(r.rating),1) AS average_rating, COUNT(r.id) AS rating_count
+      FROM reviews r
+      JOIN menu_items m ON m.id = r.menu_item_id
+      GROUP BY r.menu_item_id
+    `)
+    res.json(rows)
+  } catch (error) {
+    console.error('Error fetching review summaries:', error)
+    res.status(500).json({ message: 'Failed to load summaries' })
+  }
+})
+
 app.post('/api/reservations', authenticateToken, async (req, res) => {
   const { date, time, guests, name, email, phone, specialRequests } = req.body
   try {
@@ -343,15 +400,26 @@ app.get('/api/admin/reservations', authenticateToken, isAdmin, async (req, res) 
 app.patch('/api/admin/reservations/:id', authenticateToken, isAdmin, async (req, res) => {
   const { status } = req.body
   try {
-    const [resv] = await db.execute('SELECT user_id, date FROM reservations WHERE id = ?', [req.params.id])
+    const [resv] = await db.execute('SELECT user_id, date, time FROM reservations WHERE id = ?', [req.params.id])
     await db.execute('UPDATE reservations SET status = ? WHERE id = ?', [status, req.params.id])
     
     // Notify customer
     if (resv.length > 0) {
       const title = status === 'confirmed' ? 'Booking Accepted!' : 'Booking Status Update'
-      const msg = status === 'confirmed' 
-        ? `Your booking for ${resv[0].date} has been accepted.` 
-        : `Your booking for ${resv[0].date} is ${status}.`
+      const dateValue = resv[0].date
+      const timeValue = resv[0].time
+      const bookingDate = new Date(dateValue)
+      const formattedDate = bookingDate.toLocaleDateString('en-US', {
+        weekday: 'short',
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+      })
+      const formattedTime = timeValue || ''
+      const dateAndTime = formattedTime ? `${formattedDate} ${formattedTime}` : formattedDate
+      const msg = status === 'confirmed'
+        ? `Your booking for ${dateAndTime} has been accepted.`
+        : `Your booking for ${dateAndTime} is ${status}.`
       await db.execute(
         'INSERT INTO notifications (user_id, title, message, type, reference_id) VALUES (?, ?, ?, ?, ?)',
         [resv[0].user_id, title, msg, 'reservation', req.params.id]
@@ -450,10 +518,34 @@ app.put('/api/admin/menu/:id', authenticateToken, isAdmin, async (req, res) => {
 
 app.delete('/api/admin/menu/:id', authenticateToken, isAdmin, async (req, res) => {
   try {
+    // fetch image path before deleting so we can remove the file
+    const [rows] = await db.execute('SELECT image_url FROM menu_items WHERE id = ?', [req.params.id])
+    if (!rows || rows.length === 0) {
+      return res.status(404).json({ message: 'Menu item not found' })
+    }
+    const imageUrl = rows[0].image_url
+
     const [result] = await db.execute('DELETE FROM menu_items WHERE id = ?', [req.params.id])
     if (result.affectedRows === 0) {
       return res.status(404).json({ message: 'Menu item not found' })
     }
+
+    // attempt to delete file from disk if exists and points inside pictures folder
+    try {
+      if (imageUrl) {
+        // only handle relative paths like Dishes/filename.jpg
+        const safePath = path.normalize(imageUrl)
+        const picturesRoot = path.join(__dirname, '../Client/src/assets/pictures')
+        const fullPath = path.join(picturesRoot, safePath)
+        if (fullPath.startsWith(picturesRoot) && fs.existsSync(fullPath)) {
+          fs.unlinkSync(fullPath)
+          console.log(`Deleted image file: ${fullPath}`)
+        }
+      }
+    } catch (unlinkErr) {
+      console.error('Failed to remove image file for deleted menu item:', unlinkErr)
+    }
+
     res.json({ message: 'Deleted successfully' })
   } catch (error) {
     console.error('Error deleting menu item:', error)
@@ -478,14 +570,33 @@ app.patch('/api/admin/menu/:id/toggle', authenticateToken, isAdmin, async (req, 
 app.post('/api/admin/upload-image', authenticateToken, isAdmin, async (req, res) => {
   try {
     const { filename, base64Data } = req.body
+    
     if (!filename || !base64Data) {
+      console.error('Missing filename or base64Data')
       return res.status(400).json({ message: 'Filename and base64Data are required' })
     }
-    const imagePath = `Dishes/${filename}`
-    res.json({ message: 'Image uploaded', image_url: imagePath })
+    
+    console.log(`Uploading image: ${filename} (${base64Data.length} bytes)`)
+    
+    // Create Dishes folder if it doesn't exist
+    const dishesDir = path.join(__dirname, '../Client/src/assets/pictures/Dishes')
+    if (!fs.existsSync(dishesDir)) {
+      console.log(`Creating directory: ${dishesDir}`)
+      fs.mkdirSync(dishesDir, { recursive: true })
+    }
+    
+    // Save the image file
+    const imagePath = path.join(dishesDir, filename)
+    const imageBuffer = Buffer.from(base64Data, 'base64')
+    fs.writeFileSync(imagePath, imageBuffer)
+    console.log(`Image saved successfully: ${imagePath}`)
+    
+    // Return the relative path for database storage
+    const relativePath = `Dishes/${filename}`
+    res.json({ message: 'Image uploaded', image_url: relativePath })
   } catch (error) {
     console.error('Error uploading image:', error)
-    res.status(500).json({ message: 'Failed to upload image' })
+    res.status(500).json({ message: `Failed to upload image: ${error.message}` })
   }
 })
 

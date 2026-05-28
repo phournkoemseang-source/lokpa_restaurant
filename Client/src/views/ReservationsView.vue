@@ -154,6 +154,9 @@ async function handleSubmit() {
                   <option value="19:00" class="bg-base-dark">19:00</option>
                   <option value="20:00" class="bg-base-dark">20:00</option>
                   <option value="21:00" class="bg-base-dark">21:00 (Late Night)</option>
+                  <option value="22:00" class="bg-base-dark">22:00</option>
+                  <option value="23:00" class="bg-base-dark">23:00</option>
+                  <option value="24:00" class="bg-base-dark">24:00</option>
                 </select>
               </div>
             </div>

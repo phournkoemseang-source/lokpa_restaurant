@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
+import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { gsap } from 'gsap'
 import { 
@@ -24,7 +25,13 @@ import {
   GripVertical
 } from 'lucide-vue-next'
 
+const router = useRouter()
 const authStore = useAuthStore()
+
+const handleLogout = async () => {
+  authStore.logout()
+  await router.push('/')
+}
 
 interface Order {
   id: number;
@@ -78,11 +85,12 @@ const isDarkMode = ref(true)
 const isMenuModalOpen = ref(false)
 const isProfileModalOpen = ref(false)
 const editingItem = ref<MenuItem | null>(null)
-const alertModal = ref({ show: false, title: '', message: '', type: 'info' as 'info' | 'success' | 'error' | 'warning' })
+const alertModal = ref({ show: false, title: '', message: '', type: 'info' as 'info' | 'success' | 'error' | 'warning', onConfirm: null as null | (() => void), onCancel: null as null | (() => void) })
 const draggedItem = ref<MenuItem | null>(null)
 const dragOverItem = ref<MenuItem | null>(null)
 const isImageDragging = ref(false)
 const imagePreview = ref<string | null>(null)
+const imageInput = ref<HTMLInputElement | null>(null)
 const menuItemForm = ref({
   name: '',
   description: '',
@@ -99,11 +107,38 @@ const imageSrc = (url: string | null | undefined) => {
 }
 
 const showAlert = (title: string, message: string, type: 'info' | 'success' | 'error' | 'warning' = 'info') => {
-  alertModal.value = { show: true, title, message, type }
+  alertModal.value = { show: true, title, message, type, onConfirm: null, onCancel: null }
   setTimeout(() => { alertModal.value.show = false }, 4000)
 }
 
-const closeAlert = () => { alertModal.value.show = false }
+const closeAlert = () => {
+  alertModal.value.show = false
+  alertModal.value.onConfirm = null
+  alertModal.value.onCancel = null
+}
+
+const showConfirm = (title: string, message: string) => {
+  return new Promise<boolean>((resolve) => {
+    alertModal.value = {
+      show: true,
+      title,
+      message,
+      type: 'warning',
+      onConfirm: () => {
+        resolve(true)
+        alertModal.value.show = false
+        alertModal.value.onConfirm = null
+        alertModal.value.onCancel = null
+      },
+      onCancel: () => {
+        resolve(false)
+        alertModal.value.show = false
+        alertModal.value.onConfirm = null
+        alertModal.value.onCancel = null
+      }
+    }
+  })
+}
 
 const handleImageDrop = async (event: DragEvent) => {
   event.preventDefault()
@@ -121,30 +156,94 @@ const handleImageDrop = async (event: DragEvent) => {
   try {
     const reader = new FileReader()
     reader.onload = async (e) => {
-      const base64 = (e.target?.result as string)?.split(',')[1]
-      const filename = `${Date.now()}-${file.name}`
-      
-      const headers: any = { 'Content-Type': 'application/json' }
-      if (authStore.token) headers.Authorization = `Bearer ${authStore.token}`
-      
-      const response = await fetch('http://localhost:5001/api/admin/upload-image', {
-        method: 'POST',
-        headers,
-        body: JSON.stringify({ filename, base64Data: base64 })
-      })
-      
-      if (response.ok) {
-        const data = await response.json()
-        menuItemForm.value.image_url = data.image_url
-        imagePreview.value = e.target?.result as string
-        showAlert('Success', 'Image uploaded successfully', 'success')
-      } else {
-        showAlert('Error', 'Failed to upload image', 'error')
+      try {
+        const base64 = (e.target?.result as string)?.split(',')[1]
+        const filename = `${Date.now()}-${file.name}`
+        
+        const headers: any = { 'Content-Type': 'application/json' }
+        if (authStore.token) headers.Authorization = `Bearer ${authStore.token}`
+        
+        console.log('Uploading image:', { filename, size: base64.length })
+        
+        const response = await fetch('http://localhost:5001/api/admin/upload-image', {
+          method: 'POST',
+          headers,
+          body: JSON.stringify({ filename, base64Data: base64 })
+        })
+        
+        console.log('Upload response status:', response.status)
+        
+        if (response.ok) {
+          const data = await response.json()
+          menuItemForm.value.image_url = data.image_url
+          imagePreview.value = e.target?.result as string
+          showAlert('Success', 'Image uploaded successfully', 'success')
+        } else {
+          const error = await response.text().catch(() => 'Unknown error')
+          console.error('Upload error:', error)
+          showAlert('Error', `Failed to upload image: ${response.status}`, 'error')
+        }
+      } catch (error) {
+        console.error('Upload request failed:', error)
+        showAlert('Error', 'Failed to send image to server', 'error')
       }
     }
     reader.readAsDataURL(file)
   } catch (error) {
-    console.error('Image upload failed:', error)
+    console.error('Image processing failed:', error)
+    showAlert('Error', 'Failed to process image', 'error')
+  }
+}
+
+const handleImageUpload = async (event: Event) => {
+  const input = event.target as HTMLInputElement
+  const files = input.files
+  if (!files || files.length === 0) return
+  
+  const file = files[0]
+  if (!file.type.startsWith('image/')) {
+    showAlert('Error', 'Please upload an image file', 'error')
+    return
+  }
+
+  try {
+    const reader = new FileReader()
+    reader.onload = async (e) => {
+      try {
+        const base64 = (e.target?.result as string)?.split(',')[1]
+        const filename = `${Date.now()}-${file.name}`
+        
+        const headers: any = { 'Content-Type': 'application/json' }
+        if (authStore.token) headers.Authorization = `Bearer ${authStore.token}`
+        
+        console.log('Uploading image:', { filename, size: base64.length })
+        
+        const response = await fetch('http://localhost:5001/api/admin/upload-image', {
+          method: 'POST',
+          headers,
+          body: JSON.stringify({ filename, base64Data: base64 })
+        })
+        
+        console.log('Upload response status:', response.status)
+        
+        if (response.ok) {
+          const data = await response.json()
+          menuItemForm.value.image_url = data.image_url
+          imagePreview.value = e.target?.result as string
+          showAlert('Success', 'Image uploaded successfully', 'success')
+        } else {
+          const error = await response.text().catch(() => 'Unknown error')
+          console.error('Upload error:', error)
+          showAlert('Error', `Failed to upload image: ${response.status}`, 'error')
+        }
+      } catch (error) {
+        console.error('Upload request failed:', error)
+        showAlert('Error', 'Failed to send image to server', 'error')
+      }
+    }
+    reader.readAsDataURL(file)
+  } catch (error) {
+    console.error('Image processing failed:', error)
     showAlert('Error', 'Failed to process image', 'error')
   }
 }
@@ -203,15 +302,8 @@ const saveMenuItem = async () => {
 }
 
 const deleteMenuItem = async (id: number) => {
-  const confirmed = await new Promise(resolve => {
-    const temp = alertModal.value
-    alertModal.value = { 
-      show: true, 
-      title: 'Delete Dish', 
-      message: 'Are you sure? This action cannot be undone.', 
-      type: 'warning' 
-    }
-  })
+  const confirmed = await showConfirm('Delete Dish', 'Are you sure you want to delete this dish? This action cannot be undone.')
+  if (!confirmed) return
 
   try {
     const headers: any = {}
@@ -476,7 +568,7 @@ const getStatusColor = (status: string) => {
       </nav>
 
       <div class="p-6 mt-auto">
-        <button @click="authStore.logout()" class="w-full flex items-center gap-4 px-5 py-4 rounded-2xl text-sm font-bold text-red-500 hover:bg-red-500/10 transition-all">
+        <button @click="handleLogout" class="w-full flex items-center gap-4 px-5 py-4 rounded-2xl text-sm font-bold text-red-500 hover:bg-red-500/10 transition-all">
           <LogOut class="h-5 w-5" />
           Sign Out Hub
         </button>
@@ -845,9 +937,13 @@ const getStatusColor = (status: string) => {
               <h4 class="font-bold text-sm mb-1">{{ alertModal.title }}</h4>
               <p class="text-xs opacity-75 leading-relaxed">{{ alertModal.message }}</p>
             </div>
-            <button @click="closeAlert" class="p-1.5 hover:bg-white/10 rounded-lg transition-colors -mt-1">
+            <button v-if="!alertModal.onConfirm" @click="closeAlert" class="p-1.5 hover:bg-white/10 rounded-lg transition-colors -mt-1">
               <XCircle class="h-4 w-4 opacity-50 hover:opacity-100" />
             </button>
+          </div>
+          <div v-if="alertModal.onConfirm" class="mt-4 flex gap-3 justify-end">
+            <button @click="alertModal.onCancel ? alertModal.onCancel() : closeAlert()" class="py-2 px-4 rounded-2xl border border-white/10 hover:bg-white/5 transition-all text-sm font-bold">Cancel</button>
+            <button @click="alertModal.onConfirm ? alertModal.onConfirm() : null" class="py-2 px-4 rounded-2xl bg-gold text-black hover:scale-105 transition-all text-sm font-black">Confirm</button>
           </div>
         </div>
       </div>
@@ -863,9 +959,9 @@ const getStatusColor = (status: string) => {
     <!-- Menu Modal -->
     <div v-if="isMenuModalOpen" class="fixed inset-0 z-[200] flex items-center justify-center p-6">
       <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" @click="isMenuModalOpen = false"></div>
-      <div :class="['relative w-full max-w-xl rounded-[2.5rem] p-10 border shadow-2xl', isDarkMode ? 'bg-black border-white/10' : 'bg-white border-gray-200']">
+      <div :class="['relative w-full max-w-xl rounded-[2.5rem] p-10 border shadow-2xl max-h-[90vh] overflow-y-auto', isDarkMode ? 'bg-black border-white/10' : 'bg-white border-gray-200']">
         <h3 class="font-serif text-3xl mb-8">{{ editingItem ? 'Refine Dish' : 'New Signature Dish' }}</h3>
-        <form @submit.prevent="saveMenuItem" class="space-y-6">
+        <form @submit.prevent="saveMenuItem" class="space-y-6 pb-8">
           <div class="grid grid-cols-2 gap-6">
             <div class="space-y-2">
               <label class="text-[10px] font-black uppercase tracking-widest opacity-40">Dish Name</label>
@@ -890,12 +986,37 @@ const getStatusColor = (status: string) => {
             </div>
             <div class="space-y-2">
               <label class="text-[10px] font-black uppercase tracking-widest opacity-40">Cuisine</label>
-              <input v-model="menuItemForm.cuisine" placeholder="e.g., Cambodian, French" type="text" :class="['w-full p-4 rounded-xl border outline-none focus:border-gold transition-all', isDarkMode ? 'bg-white/5 border-white/10' : 'bg-gray-50 border-gray-200']" />
+              <select v-model="menuItemForm.cuisine" :class="['w-full p-4 rounded-xl border outline-none focus:border-gold transition-all', isDarkMode ? 'bg-white/5 border-white/10 text-white' : 'bg-gray-50 border-gray-200']">
+                <option>Asia Foods</option>
+                <option>Europe Foods</option>
+              </select>
             </div>
           </div>
           <div class="space-y-2">
-            <label class="text-[10px] font-black uppercase tracking-widest opacity-40">Image URL / Path</label>
-            <input v-model="menuItemForm.image_url" placeholder="e.g., Foods/dish.jpg" :class="['w-full p-4 rounded-xl border outline-none focus:border-gold transition-all', isDarkMode ? 'bg-white/5 border-white/10' : 'bg-gray-50 border-gray-200']" />
+            <label class="text-[10px] font-black uppercase tracking-widest opacity-40">Dish Image</label>
+            <div 
+              @drop="handleImageDrop"
+              @dragover.prevent="isImageDragging = true"
+              @dragleave="isImageDragging = false"
+              @click="imageInput?.click()"
+              :class="['w-full p-8 rounded-2xl border-2 border-dashed transition-all flex flex-col items-center justify-center cursor-pointer', isImageDragging ? (isDarkMode ? 'border-gold bg-gold/10' : 'border-gold bg-gold/5') : (isDarkMode ? 'border-white/20 bg-white/5 hover:border-white/40' : 'border-gray-300 bg-gray-50 hover:border-gray-400')]">
+              <div class="text-center">
+                <div :class="['w-12 h-12 rounded-xl flex items-center justify-center mx-auto mb-3', isDarkMode ? 'bg-white/10' : 'bg-gray-200']">
+                  <svg class="w-6 h-6 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                  </svg>
+                </div>
+                <p class="text-sm font-semibold">Drag and drop your image here</p>
+                <p class="text-xs opacity-40 mt-1">or click to browse (PNG, JPG, GIF)</p>
+              </div>
+              <input type="file" accept="image/*" @change="handleImageUpload" class="hidden" ref="imageInput" />
+            </div>
+            <div v-if="imagePreview" class="relative mt-4">
+              <img :src="imagePreview" :alt="menuItemForm.name" class="w-full h-40 object-cover rounded-2xl" />
+              <button type="button" @click="imagePreview = null; menuItemForm.image_url = ''" class="absolute top-2 right-2 p-2 rounded-lg bg-red-500/20 text-red-400 hover:bg-red-500/30 transition-all">
+                <XCircle class="h-5 w-5" />
+              </button>
+            </div>
           </div>
           <div class="space-y-2">
             <label class="text-[10px] font-black uppercase tracking-widest opacity-40">Description</label>
