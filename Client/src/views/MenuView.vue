@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
+import { useRoute } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { ChevronRight, Info, Search, ShoppingBag, Star, X } from 'lucide-vue-next'
 import MenuCard from '@/components/MenuCard.vue'
 import { useCartStore } from '@/stores/cart'
@@ -36,6 +38,8 @@ const imageModules = import.meta.glob('../assets/pictures/**/*.{jpg,jpeg,png}', 
   import: 'default',
 }) as Record<string, string>
 
+const { t } = useI18n()
+const route = useRoute()
 const cartStore = useCartStore()
 const authStore = useAuthStore()
 const activeCuisine = ref<Cuisine>('Asia Foods')
@@ -53,36 +57,36 @@ const cuisineOptions = [
     name: 'Asia Foods' as Cuisine,
     categoryKey: 'foods',
     imageFolder: 'AsiaFoods/Foods',
-    description: 'Cambodian and Asian-inspired plates with herbs, rice, seafood, fruit, and warm spices.',
+    description: 'ម្ហូបខ្មែរនិងអាស៊ីដែលមានរុក្ខជាតិ ប្រេងបាយ សមុទ្រ ផ្លែឈើ និងម្សៅរស់រវើក។',
   },
   {
     name: 'Europe Foods' as Cuisine,
     categoryKey: 'foods',
     imageFolder: 'EroupFoods/Foods',
-    description: 'European comfort and fine-dining choices: pizza, burgers, desserts, wines, and garden plates.',
+    description: 'ជម្រើសអាហារអឺរ៉ុបស្រស់ស្អាត: ប៊ីហ្សា, ប៊ឺហ្គ័រ, បង្អែម, ស្រា និងម្ហូបបួនជ្រុង។',
   },
 ]
 
 const categoryOptions: Record<Cuisine, CategoryOption[]> = {
   'Asia Foods': [
-    { key: 'all', label: 'All', folder: 'AsiaFoods/Foods', description: 'Experience the full range of our Asian culinary journey.' },
-    { key: 'foods', label: 'Foods', folder: 'AsiaFoods/Foods', description: 'Khmer classics, seafood, rice plates, and warm Asian spices.' },
-    { key: 'drinks', label: 'Drinks', folder: 'AsiaFoods/Drinks', description: 'Tea, citrus coolers, coffee, and dinner-friendly house pours.' },
-    { key: 'desserts', label: 'Desserts', folder: 'AsiaFoods/Desert', description: 'Coconut, palm sugar, fruit, and soft pastry finishes.' },
-    { key: 'fruites', label: 'Fruites', folder: 'AsiaFoods/Fruites', description: 'Seasonal tropical fruit plates and bright market bowls.' },
-    { key: 'vegetarian', label: 'Vegetarian', folder: 'AsiaFoods/Vegeterain', description: 'Herb-forward garden plates with Asian sauces and grains.' },
-    { key: 'wines', label: 'Wines', folder: 'AsiaFoods/Wines', description: 'Pairing bottles and cellar selections for Asian tasting menus.' },
+    { key: 'all', label: 'ទាំងអស់', folder: 'AsiaFoods/Foods', description: 'ស្វែងយល់ពីជួរនៃមុខម្ហូបអាស៊ីរបស់យើង។' },
+    { key: 'foods', label: 'ម្ហូប', folder: 'AsiaFoods/Foods', description: 'មុខម្ហូបខ្មែរ សមុទ្រ បាយ និងរសជាតិនៃអាស៊ី។' },
+    { key: 'drinks', label: 'ភេសជ្ជៈ', folder: 'AsiaFoods/Drinks', description: 'ទឹកតែ កាហ្វេ និងភេសជ្ជៈដែលសមរម្យសម្រាប់អាហារពេលល្ងាច។' },
+    { key: 'desserts', label: 'បង្អែម', folder: 'AsiaFoods/Desert', description: 'កូកូណូ ធញ្ណើផ្លែឈើ និងបង្អែមភក់ៗ។' },
+    { key: 'fruites', label: 'ផ្លែឈើ', folder: 'AsiaFoods/Fruites', description: 'ផ្លែឈើក្រូច ធម្មតា និងសម័យ។' },
+    { key: 'vegetarian', label: 'បន្លែ', folder: 'AsiaFoods/Vegeterain', description: 'ម្ហូបបន្លែ និងស្រាយជាមួយស៊ុបអាស៊ី។' },
+    { key: 'wines', label: 'ស្រា', folder: 'AsiaFoods/Wines', description: 'ស្រាផ្សំ និងជម្រើសសម្រាប់អាហារគូរ។' },
   ],
   'Europe Foods': [
-    { key: 'all', label: 'All', folder: 'EroupFoods/Foods', description: 'Explore our complete collection of European-inspired flavors.' },
-    { key: 'foods', label: 'Foods', folder: 'EroupFoods/Foods', description: 'Roasted meats and refined European comfort plates.' },
-    { key: 'pizza', label: 'Pizza', folder: 'EroupFoods/Pizza', description: 'Stone-baked pizzas with cheese, herbs, char, and rich sauces.' },
-    { key: 'burgers', label: 'Burgers', folder: 'EroupFoods/Burgers', description: 'Stacked burgers with brioche, cheese, pepper relish, and crisp greens.' },
-    { key: 'pasta', label: 'Pasta', folder: 'EroupFoods/Pasta', description: 'Creamy, spicy, and black-gold pasta plates with seafood accents.' },
-    { key: 'drinks', label: 'Drinks', folder: 'EroupFoods/Drinks', description: 'Cocktails, cold drinks, and European-style dinner refreshers.' },
-    { key: 'desserts', label: 'Desserts', folder: 'EroupFoods/Sweets', description: 'French-style cakes, cream, berries, and patisserie textures.' },
-    { key: 'wines', label: 'Wines', folder: 'EroupFoods/Wines', description: 'Red, white, sparkling, and pairing bottles for slow evenings.' },
-    { key: 'garden', label: 'Garden', folder: 'EroupFoods/Vegeterain', description: 'European vegetable compositions, greens, and delicate sauces.' },
+    { key: 'all', label: 'ទាំងអស់', folder: 'EroupFoods/Foods', description: 'រុករកច្រើនមុខម្ហូបអឺរ៉ុបរបស់យើង។' },
+    { key: 'foods', label: 'ម្ហូប', folder: 'EroupFoods/Foods', description: 'សាច់អាំង និងមុខម្ហូបអឺរ៉ុបដែលមានភាពល្អិតល្អន់។' },
+    { key: 'pizza', label: 'ភីហ្សា', folder: 'EroupFoods/Pizza', description: 'ភីហ្សារដុតកំដៅជាមួយជីហ្សាហោរ និងសូសស្រួច។' },
+    { key: 'burgers', label: 'ប៊ឺហ្គ័រ', folder: 'EroupFoods/Burgers', description: 'ប៊ឺហ្គ័រអាំង និងបន្លែស្រស់។' },
+    { key: 'pasta', label: 'ផាស្តា', folder: 'EroupFoods/Pasta', description: 'ផាស្តាដែលមានរសជាតិត្រជាក់ និងក្រៀម។' },
+    { key: 'drinks', label: 'ភេសជ្ជៈ', folder: 'EroupFoods/Drinks', description: 'កុកតែល និងភេសជ្ជៈស្រស់។' },
+    { key: 'desserts', label: 'បង្អែម', folder: 'EroupFoods/Sweets', description: 'ក taart, ស្រូបកែវ និងបង្អែមបារាំង។' },
+    { key: 'wines', label: 'ស្រា', folder: 'EroupFoods/Wines', description: 'ស្រាខ្មែរនិងអឺរ៉ុបសម្រាប់យប់យ่าง។' },
+    { key: 'garden', label: 'បន្លែ', folder: 'EroupFoods/Vegeterain', description: 'បន្លែអឺរ៉ុប និងសូសធម្មតា។' },
   ],
 }
 
@@ -360,15 +364,22 @@ const itemsByCategory = computed(() => {
   })
   
   // Sort groups by their appearance in currentCategories
-  const sortedGroups: Array<{ label: string; items: MenuItem[] }> = []
+  const sortedGroups: Array<{ label: string; key: string; items: MenuItem[] }> = []
   currentCategories.value.forEach(cat => {
     if (groups[cat.label]) {
-      sortedGroups.push({ label: cat.label, items: groups[cat.label] })
+      sortedGroups.push({ label: cat.label, key: cat.key, items: groups[cat.label] })
     }
   })
   
   return sortedGroups
 })
+
+const cuisineDescKey = (cuisine: Cuisine) => cuisine === 'Asia Foods' ? 'menu.desc_asia' : 'menu.desc_europe'
+
+const categoryDescKey = (cuisine: Cuisine, key: string) => {
+  const prefix = cuisine === 'Asia Foods' ? 'asia' : 'europe'
+  return `menu.desc_${prefix}_${key}`
+}
 
 const selectCuisine = (cuisine: Cuisine) => {
   activeCuisine.value = cuisine
@@ -424,7 +435,7 @@ const submitRating = async () => {
   if (!selectedItem.value || selectedRating.value === 0) return
 
   if (!authStore.token) {
-    ratingMessage.value = 'Please login before rating this dish.'
+    ratingMessage.value = t('menu.login_to_rate')
     return
   }
 
@@ -448,7 +459,7 @@ const submitRating = async () => {
       }),
     })
 
-    if (!ensureResponse.ok) throw new Error('Unable to prepare menu item for rating')
+    if (!ensureResponse.ok) throw new Error('Could not prepare dish for rating')
     const ensured = await ensureResponse.json()
 
     const ratingResponse = await fetch('http://localhost:5001/api/reviews', {
@@ -465,8 +476,8 @@ const submitRating = async () => {
       }),
     })
 
-    if (!ratingResponse.ok) throw new Error('Unable to save rating')
-    ratingMessage.value = 'Thanks. Your rating was saved.'
+    if (!ratingResponse.ok) throw new Error('Could not save rating')
+    ratingMessage.value = t('menu.rating_saved')
     await refreshRatingSummaries()
     const fresh = ratingSummaries.value[selectedItem.value.name]
     selectedItem.value = {
@@ -486,6 +497,19 @@ const submitRating = async () => {
 onMounted(async () => {
   await refreshRatingSummaries()
   await fetchMenuItems()
+  
+  // Check for highlight query param (from notification click)
+  if (route.query.highlight) {
+    const highlight = decodeURIComponent(route.query.highlight as string)
+    searchQuery.value = highlight
+    // Scroll to menu section after a short delay to let images load
+    setTimeout(() => {
+      const menuSection = document.querySelector('.container')
+      if (menuSection) {
+        menuSection.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      }
+    }, 600)
+  }
 })
 
 </script>
@@ -507,16 +531,16 @@ onMounted(async () => {
           <span class="text-xs font-bold uppercase tracking-[0.5em] text-gold">NekMak Gastronomy</span>
           <div class="h-px w-12 bg-gold/50"></div>
         </div>
-        <h1 class="font-serif text-6xl leading-none tracking-tight text-white md:text-8xl">The Menu</h1>
+        <h1 class="font-serif text-6xl leading-none tracking-tight text-white md:text-8xl">{{ t('menu.title') }}</h1>
         <p class="mx-auto mt-7 max-w-2xl font-serif text-lg italic leading-relaxed text-text-subtle md:text-xl">
-          Select Asia Foods or Europe Foods, choose a category, then browse the local dishes saved in that folder.
+          {{ t('menu.subtitle') }}
         </p>
 
         <button
           @click="selectCuisine('Asia Foods')"
           class="group mx-auto mt-9 flex items-center gap-3 text-[10px] font-bold uppercase tracking-[0.3em] text-gold transition-colors hover:text-white"
         >
-          Explore Asia Foods
+          {{ t('menu.browse_asia') }}
           <ChevronRight class="h-4 w-4 transition-transform group-hover:translate-x-2" />
         </button>
       </div>
@@ -537,9 +561,9 @@ onMounted(async () => {
             <img :src="cuisine.imageSrc" :alt="cuisine.name" class="absolute inset-0 h-full w-full object-cover opacity-50 transition-transform duration-700 group-hover:scale-110" />
             <div class="absolute inset-0 bg-gradient-to-r from-base-dark via-base-dark/78 to-base-dark/30"></div>
             <div class="relative z-10 max-w-3xl p-8 md:p-10">
-              <p class="text-[10px] font-black uppercase tracking-[0.38em] text-gold">{{ cuisine.count }} items</p>
+              <p class="text-[10px] font-black uppercase tracking-[0.38em] text-gold">{{ cuisine.count }} {{ t('menu.items') }}</p>
               <h2 class="mt-4 font-serif text-5xl text-white">{{ cuisine.name }}</h2>
-              <p class="mt-5 max-w-xl text-lg leading-8 text-white/66">{{ cuisine.description }}</p>
+              <p class="mt-5 max-w-xl text-lg leading-8 text-white/66">{{ t(cuisineDescKey(cuisine.name)) }}</p>
             </div>
           </button>
         </div>
@@ -556,8 +580,8 @@ onMounted(async () => {
           >
             <img :src="tile.imageSrc" :alt="tile.label" class="absolute inset-0 h-full w-full object-cover opacity-45 transition-transform duration-700 group-hover:scale-110" />
             <div class="absolute inset-0 bg-base-dark/58"></div>
-            <span class="relative z-10 block px-5 pt-6 text-[10px] font-black uppercase tracking-[0.26em] text-gold">{{ tile.label }}</span>
-            <span class="relative z-10 block px-5 pt-1 text-sm text-white/72">{{ tile.total }} plates</span>
+            <span class="relative z-10 block px-5 pt-6 text-[10px] font-black uppercase tracking-[0.26em] text-gold">{{ t('menu.category_' + tile.key) }}</span>
+            <span class="relative z-10 block px-5 pt-1 text-sm text-white/72">{{ tile.total }} {{ t('menu.items') }}</span>
           </button>
         </div>
 
@@ -572,7 +596,7 @@ onMounted(async () => {
                 activeCategory === cat.key ? 'rounded-full bg-gold text-base-dark shadow-xl shadow-gold/20' : 'text-text-muted hover:text-gold'
               ]"
             >
-              {{ cat.label }}
+              {{ t('menu.category_' + cat.key) }}
             </button>
           </div>
 
@@ -581,7 +605,7 @@ onMounted(async () => {
             <input
               v-model="searchQuery"
               type="text"
-              placeholder="Search the menu..."
+              :placeholder="t('menu.search_placeholder')"
               class="w-full border-b border-gold/20 bg-transparent py-3 pl-12 pr-4 text-base italic text-white transition-all placeholder:text-text-muted focus:border-gold focus:outline-none"
             />
           </div>
@@ -593,16 +617,16 @@ onMounted(async () => {
       <div class="mb-12 flex flex-col justify-between gap-6 md:flex-row md:items-end">
         <div>
           <p class="text-[10px] font-black uppercase tracking-[0.35em] text-gold">{{ selectedCuisine.name }}</p>
-          <h2 class="mt-3 font-serif text-4xl md:text-6xl">{{ searchQuery ? 'Search Results' : (activeCategory === 'all' ? 'All Delicacies' : selectedCategory.label) }}</h2>
-          <p class="mt-4 max-w-2xl text-sm leading-7 text-white/58">{{ selectedCategory.description }}</p>
+          <h2 class="mt-3 font-serif text-4xl md:text-6xl">{{ searchQuery ? t('menu.results_for') : (activeCategory === 'all' ? t('menu.all_dishes') : t('menu.category_' + selectedCategory.key)) }}</h2>
+          <p class="mt-4 max-w-2xl text-sm leading-7 text-white/58">{{ t(categoryDescKey(activeCuisine, selectedCategory.key)) }}</p>
         </div>
-        <p class="text-sm uppercase tracking-[0.25em] text-text-muted">Showing {{ displayedItems.length }} cards</p>
+        <p class="text-sm uppercase tracking-[0.25em] text-text-muted">{{ t('menu.showing') }} {{ displayedItems.length }} {{ t('menu.cards') }}</p>
       </div>
 
       <div v-if="displayedItems.length > 0">
         <div v-for="group in itemsByCategory" :key="group.label" class="mb-20 last:mb-0">
           <div v-if="activeCategory === 'all' || searchQuery" class="mb-10 flex items-center gap-6">
-            <h3 class="font-serif text-3xl text-gold">{{ group.label }}</h3>
+            <h3 class="font-serif text-3xl text-gold">{{ t('menu.category_' + group.key) }}</h3>
             <div class="h-px flex-1 bg-gold/10"></div>
           </div>
           <div class="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3 lg:gap-10">
@@ -621,9 +645,9 @@ onMounted(async () => {
           <Info class="h-8 w-8 text-gold/25" />
         </div>
         <div class="space-y-4">
-          <p class="font-serif text-4xl text-white">No Matching Dishes</p>
-          <p class="mx-auto max-w-md italic text-text-muted">Try another category or clear your search.</p>
-          <button @click="searchQuery = ''; activeCategory = 'all'" class="text-xs font-bold uppercase tracking-widest text-gold hover:underline">Clear Search</button>
+          <p class="font-serif text-4xl text-white">{{ t('menu.no_results') }}</p>
+          <p class="mx-auto max-w-md italic text-text-muted">{{ t('menu.no_results_hint') }}</p>
+          <button @click="searchQuery = ''; activeCategory = 'all'" class="text-xs font-bold uppercase tracking-widest text-gold hover:underline">{{ t('menu.clear_search') }}</button>
         </div>
       </div>
     </section>
@@ -631,7 +655,7 @@ onMounted(async () => {
     <Transition name="fade">
       <div v-if="selectedItem" class="fixed inset-0 z-[110] flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm" @click.self="selectedItem = null">
         <div class="max-h-[90vh] w-full max-w-4xl overflow-y-auto border border-gold/20 bg-base-dark">
-          <button @click="selectedItem = null" class="float-right m-4 p-2 text-gold hover:text-white" aria-label="Close dish detail">
+          <button @click="selectedItem = null" class="float-right m-4 p-2 text-gold hover:text-white" :aria-label="t('menu.close_detail')">
             <X class="h-6 w-6" />
           </button>
           <div class="grid grid-cols-1 md:grid-cols-2">
@@ -642,7 +666,7 @@ onMounted(async () => {
               <div class="flex items-center gap-2" :class="selectedItem.rating && selectedItem.ratingCount ? 'text-gold' : 'text-text-muted'">
                 <Star class="h-5 w-5" :class="selectedItem.rating && selectedItem.ratingCount ? 'fill-current' : ''" />
                 <span class="text-sm">
-                  {{ selectedItem.rating && selectedItem.ratingCount ? `${selectedItem.rating.toFixed(1)} (${selectedItem.ratingCount} ratings)` : 'No ratings yet' }}
+                  {{ selectedItem.rating && selectedItem.ratingCount ? `${selectedItem.rating.toFixed(1)} (${selectedItem.ratingCount} ${t('menu.rating_label')})` : t('menu.no_ratings') }}
                 </span>
               </div>
               <p class="leading-relaxed text-text-subtle">{{ selectedItem.description }}</p>
@@ -652,11 +676,11 @@ onMounted(async () => {
                 @click="addDetailItem"
                 class="w-full bg-gold py-4 text-xs font-black uppercase tracking-[0.3em] text-base-dark transition-colors hover:bg-white"
               >
-                Add To Cart
+                {{ t('menu.add_to_cart') }}
               </button>
 
               <div class="space-y-4 border-t border-gold/10 pt-6">
-                <p class="text-[10px] font-black uppercase tracking-[0.28em] text-gold">Rate this dish</p>
+                <p class="text-[10px] font-black uppercase tracking-[0.28em] text-gold">{{ t('menu.rate_dish') }}</p>
                 <div class="flex gap-2">
                   <button
                     v-for="star in 5"
@@ -671,7 +695,7 @@ onMounted(async () => {
                 <textarea
                   v-model="ratingComment"
                   rows="3"
-                  placeholder="Optional note"
+                  :placeholder="t('menu.optional_note')"
                   class="w-full border border-gold/10 bg-base-dark/70 px-4 py-3 text-sm text-white outline-none placeholder:text-text-muted focus:border-gold"
                 ></textarea>
                 <button
@@ -679,7 +703,7 @@ onMounted(async () => {
                   :disabled="selectedRating === 0 || isRatingSaving"
                   class="w-full border border-gold/40 py-3 text-[10px] font-black uppercase tracking-[0.25em] text-gold transition-colors hover:bg-gold hover:text-base-dark disabled:cursor-not-allowed disabled:opacity-40"
                 >
-                  {{ isRatingSaving ? 'Saving...' : 'Save Rating' }}
+                  {{ isRatingSaving ? t('menu.saving') : t('menu.save_rating') }}
                 </button>
                 <p v-if="ratingMessage" class="text-xs text-text-subtle">{{ ratingMessage }}</p>
               </div>
@@ -693,7 +717,7 @@ onMounted(async () => {
       <button
         @click="cartStore.toggleCart()"
         class="group relative rounded-full bg-gold p-5 text-base-dark shadow-2xl transition-transform hover:scale-110 active:scale-95"
-        aria-label="Open saved cart"
+        :aria-label="t('menu.open_cart')"
       >
         <ShoppingBag class="h-6 w-6" />
         <span v-if="cartStore.totalItems > 0" class="absolute -right-2 -top-2 flex h-6 w-6 items-center justify-center rounded-full border-2 border-gold bg-white text-[10px] font-black text-base-dark shadow-lg">

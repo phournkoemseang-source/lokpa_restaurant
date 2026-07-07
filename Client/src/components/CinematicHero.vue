@@ -1,8 +1,11 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { Utensils, ArrowUpRight } from 'lucide-vue-next'
+
+const { t } = useI18n()
 
 gsap.registerPlugin(ScrollTrigger)
 
@@ -102,7 +105,7 @@ const splitText = (text: string) => {
     <div ref="contentRef" class="relative z-10 container mx-auto px-6 text-center">
       <div class="mb-6 flex justify-center">
         <div class="h-px w-12 bg-gold/50 self-center"></div>
-        <span class="mx-4 text-[10px] font-black uppercase tracking-[0.5em] text-gold">The Art of the Sear</span>
+        <span class="mx-4 text-[10px] font-black uppercase tracking-[0.5em] text-gold">{{ t('hero.art_of_fire') }}</span>
         <div class="h-px w-12 bg-gold/50 self-center"></div>
       </div>
 
@@ -113,7 +116,7 @@ const splitText = (text: string) => {
       </h1>
 
       <p class="mt-8 max-w-2xl mx-auto text-lg md:text-xl text-white/70 font-light leading-relaxed italic">
-        "Where fire meets heritage, and every cut tells a story of perfection."
+        {{ t('hero.tagline') }}
       </p>
 
       <div class="mt-12 flex flex-col md:flex-row items-center justify-center gap-6">
@@ -122,7 +125,7 @@ const splitText = (text: string) => {
           class="group relative overflow-hidden bg-gold px-10 py-4 text-[11px] font-black uppercase tracking-[0.3em] text-black transition-all hover:bg-white"
         >
           <span class="relative z-10 flex items-center gap-3">
-            Explore Menu
+            {{ t('hero.explore_menu') }}
             <Utensils class="h-4 w-4" />
           </span>
           <div class="absolute inset-0 -translate-x-full bg-white transition-transform duration-500 group-hover:translate-x-0"></div>
@@ -133,7 +136,7 @@ const splitText = (text: string) => {
           class="group relative border border-white/20 px-10 py-4 text-[11px] font-black uppercase tracking-[0.3em] text-white transition-all hover:border-gold hover:text-gold"
         >
           <span class="relative z-10 flex items-center gap-3">
-            Reserve Table
+            {{ t('hero.book_table') }}
             <ArrowUpRight class="h-4 w-4 transition-transform group-hover:translate-x-1 group-hover:-translate-y-1" />
           </span>
         </router-link>
@@ -142,7 +145,7 @@ const splitText = (text: string) => {
 
     <!-- Scroll Indicator -->
     <div class="absolute bottom-10 left-1/2 -translate-x-1/2 z-10 flex flex-col items-center gap-4 text-gold/60">
-      <span class="text-[9px] uppercase tracking-[0.4em] rotate-180 [writing-mode:vertical-lr]">Scroll</span>
+      <span class="text-[9px] uppercase tracking-[0.4em] rotate-180 [writing-mode:vertical-lr]">{{ t('hero.scroll') }}</span>
       <div class="h-12 w-px bg-gradient-to-b from-gold/60 to-transparent">
         <div class="scroll-dot w-1 h-1 bg-gold rounded-full"></div>
       </div>

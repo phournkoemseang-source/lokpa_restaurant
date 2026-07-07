@@ -7,6 +7,8 @@ import ContactView from '@/views/ContactView.vue'
 import AdminView from '@/views/AdminView.vue'
 import ProfileView from '@/views/ProfileView.vue'
 import AuthCallback from '@/views/AuthCallback.vue'
+import OrdersPage from '@/views/OrdersPage.vue'
+import WishlistPage from '@/views/WishlistPage.vue'
 import { useAuthStore } from '@/stores/auth'
 
 const router = createRouter({
@@ -39,6 +41,18 @@ const router = createRouter({
       path: '/profile',
       name: 'profile',
       component: ProfileView,
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/orders',
+      name: 'orders',
+      component: OrdersPage,
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/wishlist',
+      name: 'wishlist',
+      component: WishlistPage,
       meta: { requiresAuth: true },
     },
     {

@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import {
   ArrowUpRight,
   CalendarCheck,
@@ -13,57 +15,59 @@ import {
   Wine,
 } from 'lucide-vue-next'
 
-const experienceCards = [
+const { t } = useI18n()
+
+const experienceCards = computed(() => [
   {
-    title: 'Signature Dishes',
-    text: 'Khmer foundations meet European technique: fish amok, Kampot pepper beef, fresh pasta, French sauces, and seasonal desserts plated with calm precision.',
+    title: t('experience.card_1_title'),
+    text: t('experience.card_1_text'),
     image: new URL('../assets/pictures/AsiaFoods/Foods/sharonang-fish-amok-921926_1920.jpg', import.meta.url).href,
     icon: Utensils,
     link: '/menu',
-    action: 'View menu',
+    action: t('experience.card_1_action'),
   },
   {
-    title: 'Chef Events',
-    text: 'NekMak hosts intimate chef-table evenings for guests who want to watch plating, hear the story of each ingredient, and enjoy a slower dining rhythm.',
+    title: t('experience.card_2_title'),
+    text: t('experience.card_2_text'),
     image: new URL('../assets/pictures/chefs/john-fornander-jJIb2e7Jkcs-unsplash.jpg', import.meta.url).href,
     icon: ChefHat,
     link: '/reservations',
-    action: 'Book event',
+    action: t('experience.card_2_action'),
   },
   {
-    title: 'Wine Pairing',
-    text: 'Premium wines are selected to balance Cambodian herbs, coconut, citrus, Kampot pepper, grilled seafood, and rich European sauces.',
+    title: t('experience.card_3_title'),
+    text: t('experience.card_3_text'),
     image: new URL('../assets/pictures/EroupFoods/Wines/kevin-kelly-PPneSBqfCCU-unsplash.jpg', import.meta.url).href,
     icon: Wine,
     link: '/reservations',
-    action: 'Reserve pairing',
+    action: t('experience.card_3_action'),
   },
-]
+])
 
-const trustPoints = [
+const trustPoints = computed(() => [
   {
-    title: 'Real Phnom Penh Hospitality',
-    text: 'NekMak is built for warm service, clear reservations, and a polished dinner experience on Street 240, Phnom Penh.',
+    title: t('experience.trust_1_title'),
+    text: t('experience.trust_1_text'),
     icon: HeartHandshake,
   },
   {
-    title: 'Focused Food Identity',
-    text: 'The menu stays true to modern Khmer and European fusion instead of trying to be everything at once.',
+    title: t('experience.trust_2_title'),
+    text: t('experience.trust_2_text'),
     icon: ShieldCheck,
   },
   {
-    title: 'Made For Special Evenings',
-    text: 'Private dining, birthday dinners, business hosting, wine pairing, and chef-table events all have a natural home here.',
+    title: t('experience.trust_3_title'),
+    text: t('experience.trust_3_text'),
     icon: Sparkles,
   },
-]
+])
 
-const eventTimeline = [
-  'Welcome drink and table introduction',
-  'Chef explanation of Khmer and European flavors',
-  'Signature course service with wine pairing option',
-  'Dessert atelier and final tea or coffee',
-]
+const eventTimeline = computed(() => [
+  t('experience.step_1'),
+  t('experience.step_2'),
+  t('experience.step_3'),
+  t('experience.step_4'),
+])
 </script>
 
 <template>
@@ -78,13 +82,13 @@ const eventTimeline = [
 
       <div class="relative z-10 mx-auto flex min-h-screen max-w-7xl items-center px-6 pb-20 pt-32 lg:px-16">
         <div class="max-w-3xl">
-          <p class="text-[10px] font-black uppercase tracking-[0.45em] text-gold">NekMak Restaurant experience</p>
+          <p class="text-[10px] font-black uppercase tracking-[0.45em] text-gold">{{ t('experience.hero_tagline') }}</p>
           <h1 class="mt-8 font-serif text-5xl leading-[0.98] md:text-7xl lg:text-8xl">
-            Where Taste Meets
-            <span class="block text-gold-light">Elegance</span>
+            {{ t('experience.hero_heading') }}
+            <span class="block text-gold-light">{{ t('experience.hero_heading_highlight') }}</span>
           </h1>
           <p class="mt-7 max-w-2xl text-sm leading-7 text-white/72 md:text-base">
-            NekMak Restaurant brings modern Khmer and European fusion to Phnom Penh with chef-led plating, premium wines, private reservations, and attentive service designed for memorable evenings.
+            {{ t('experience.hero_desc') }}
           </p>
 
           <div class="mt-9 flex flex-wrap gap-4">
@@ -92,14 +96,14 @@ const eventTimeline = [
               to="/reservations"
               class="inline-flex h-12 items-center gap-3 bg-gold px-7 text-[10px] font-black uppercase tracking-[0.25em] text-base-dark transition-all hover:bg-white"
             >
-              Reserve Experience
+              {{ t('experience.book_experience') }}
               <CalendarCheck class="h-4 w-4" />
             </router-link>
             <router-link
               to="/menu"
               class="inline-flex h-12 items-center gap-3 border border-gold/45 px-7 text-[10px] font-black uppercase tracking-[0.25em] text-gold transition-all hover:bg-gold hover:text-base-dark"
             >
-              Explore Dishes
+              {{ t('experience.browse_dishes') }}
               <ArrowUpRight class="h-4 w-4" />
             </router-link>
           </div>
@@ -111,18 +115,18 @@ const eventTimeline = [
       <div class="container mx-auto grid gap-6 px-6 md:grid-cols-3 lg:px-16">
         <div class="border border-gold/15 bg-base-dark/60 p-6">
           <MapPin class="h-6 w-6 text-gold" />
-          <p class="mt-5 text-[10px] font-black uppercase tracking-[0.3em] text-white/45">Location</p>
+          <p class="mt-5 text-[10px] font-black uppercase tracking-[0.3em] text-white/45">{{ t('experience.location') }}</p>
           <p class="mt-2 font-serif text-2xl">Street 240, Phnom Penh</p>
         </div>
         <div class="border border-gold/15 bg-base-dark/60 p-6">
           <Clock class="h-6 w-6 text-gold" />
-          <p class="mt-5 text-[10px] font-black uppercase tracking-[0.3em] text-white/45">Hours</p>
-          <p class="mt-2 font-serif text-2xl">Daily, 6:00 AM - 12:00 PM</p>
+          <p class="mt-5 text-[10px] font-black uppercase tracking-[0.3em] text-white/45">{{ t('experience.open_hours') }}</p>
+          <p class="mt-2 font-serif text-2xl">Every day, 06:00 - 12:00</p>
         </div>
         <div class="border border-gold/15 bg-base-dark/60 p-6">
           <Star class="h-6 w-6 text-gold" />
-          <p class="mt-5 text-[10px] font-black uppercase tracking-[0.3em] text-white/45">Best For</p>
-          <p class="mt-2 font-serif text-2xl">Private dining and chef events</p>
+          <p class="mt-5 text-[10px] font-black uppercase tracking-[0.3em] text-white/45">{{ t('experience.for_label') }}</p>
+          <p class="mt-2 font-serif text-2xl">{{ t('experience.private_dinners') }}</p>
         </div>
       </div>
     </section>
@@ -130,11 +134,11 @@ const eventTimeline = [
     <section class="container mx-auto px-6 py-24 lg:px-16">
       <div class="grid gap-10 lg:grid-cols-[0.88fr_1.12fr]">
         <div>
-          <p class="text-[10px] font-black uppercase tracking-[0.35em] text-gold">Why choose NekMak</p>
-          <h2 class="mt-5 font-serif text-4xl leading-tight md:text-6xl">A Restaurant Built For Meaningful Dinner</h2>
+          <p class="text-[10px] font-black uppercase tracking-[0.35em] text-gold">{{ t('experience.why_nekmak') }}</p>
+          <h2 class="mt-5 font-serif text-4xl leading-tight md:text-6xl">{{ t('experience.why_heading') }}</h2>
         </div>
         <p class="max-w-2xl text-sm leading-7 text-white/62 lg:justify-self-end">
-          Choose NekMak when you want more than food on a table. The experience is planned around taste, pacing, trust, and atmosphere: clear service, real Cambodian flavor, European discipline, and a dining room that feels private without feeling cold.
+          {{ t('experience.why_desc') }}
         </p>
       </div>
 
@@ -171,19 +175,19 @@ const eventTimeline = [
           />
           <div class="absolute inset-0 bg-[linear-gradient(90deg,rgba(8,8,8,0.88),rgba(8,8,8,0.35)),linear-gradient(180deg,transparent,rgba(8,8,8,0.94))]"></div>
           <div class="absolute bottom-0 left-0 right-0 p-8 md:p-12">
-            <p class="text-[10px] font-black uppercase tracking-[0.32em] text-gold">Chef philosophy</p>
-            <h2 class="mt-4 max-w-xl font-serif text-4xl leading-tight md:text-5xl">Respect the ingredient. Finish with elegance.</h2>
+            <p class="text-[10px] font-black uppercase tracking-[0.32em] text-gold">{{ t('experience.chef_philosophy') }}</p>
+            <h2 class="mt-4 max-w-xl font-serif text-4xl leading-tight md:text-5xl">{{ t('experience.chef_philosophy_heading') }}</h2>
             <p class="mt-5 max-w-2xl text-sm leading-7 text-white/66">
-              NekMak plates with restraint: fresh herbs, clean sauces, careful heat, balanced acidity, and a sense of occasion that still feels generous.
+              {{ t('experience.chef_philosophy_desc') }}
             </p>
           </div>
         </div>
 
         <div class="border border-white/10 bg-base-dark p-8 md:p-10">
           <ChefHat class="h-10 w-10 text-gold" />
-          <h2 class="mt-6 font-serif text-4xl">Chef Event Flow</h2>
+          <h2 class="mt-6 font-serif text-4xl">{{ t('experience.chef_table_flow') }}</h2>
           <p class="mt-5 text-sm leading-7 text-white/62">
-            A chef event at NekMak is ideal for small groups, birthdays, business guests, and couples who want the story behind the plate.
+            {{ t('experience.chef_table_desc') }}
           </p>
 
           <div class="mt-9 space-y-5">
@@ -197,7 +201,7 @@ const eventTimeline = [
             to="/reservations"
             class="mt-9 inline-flex h-12 w-full items-center justify-center gap-3 bg-gold px-7 text-[10px] font-black uppercase tracking-[0.25em] text-base-dark transition-all hover:bg-white"
           >
-            Plan Chef Event
+            {{ t('experience.organize_event') }}
             <CalendarCheck class="h-4 w-4" />
           </router-link>
         </div>
@@ -207,11 +211,11 @@ const eventTimeline = [
     <section class="container mx-auto px-6 py-24 lg:px-16">
       <div class="mb-12 flex flex-col justify-between gap-6 md:flex-row md:items-end">
         <div>
-          <p class="text-[10px] font-black uppercase tracking-[0.35em] text-gold">Why believe NekMak</p>
-          <h2 class="mt-4 font-serif text-4xl md:text-6xl">Trust Comes From Details</h2>
+          <p class="text-[10px] font-black uppercase tracking-[0.35em] text-gold">{{ t('experience.trust_title') }}</p>
+          <h2 class="mt-4 font-serif text-4xl md:text-6xl">{{ t('experience.trust_title') }}</h2>
         </div>
         <router-link to="/contact" class="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.25em] text-gold">
-          Contact NekMak
+          {{ t('experience.contact_link') }}
           <ArrowUpRight class="h-4 w-4" />
         </router-link>
       </div>

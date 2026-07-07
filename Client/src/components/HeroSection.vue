@@ -1,21 +1,22 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import { ShieldCheck } from 'lucide-vue-next'
+
+const { t } = useI18n()
 </script>
 
 <template>
   <div class="space-y-8 animate-fade-in">
     <p class="text-gold text-xs tracking-[0.3em] uppercase font-medium">
-      Established 2024
+      {{ t('hero.established') }}
     </p>
 
     <h1 class="font-serif text-5xl md:text-6xl lg:text-7xl text-white leading-[1.1] font-normal">
-      Sensory<br />Indulgence.
+      {{ t('hero.refined_dining') }}
     </h1>
 
     <p class="text-text-subtle text-base md:text-lg leading-relaxed max-w-md">
-      Access your private portal to manage reservations,
-      explore curated menus, and experience the elite
-      precision of NekMak.
+      {{ t('hero.desc') }}
     </p>
 
     <div class="flex items-center gap-3 pt-4">

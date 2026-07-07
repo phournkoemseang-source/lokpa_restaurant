@@ -11,8 +11,10 @@ import {
   Phone,
   Send,
 } from 'lucide-vue-next'
+import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '@/stores/auth'
 
+const { t } = useI18n()
 const authStore = useAuthStore()
 const lokpaAddress = 'BP 511, Phum Tropeang Chhuk (Borey Sorla) Sangkat, Street 371, Phnom Penh'
 const lokpaMapsUrl = 'https://maps.app.goo.gl/hZ1T6XHrJvdYi3SS7'
@@ -74,14 +76,14 @@ function handleNewsletter() {
       <div class="container relative z-10 mx-auto px-6 pb-20 lg:px-16 lg:pb-28">
         <div class="grid items-end gap-12 lg:grid-cols-[1.1fr_0.9fr]">
           <div class="max-w-3xl space-y-7">
-            <p class="text-[10px] font-bold uppercase tracking-[0.45em] text-gold">NekMak Luxe Dining</p>
+            <p class="text-[10px] font-bold uppercase tracking-[0.45em] text-gold">{{ t('contact.luxe_dining') }}</p>
             <h1 class="font-serif text-5xl leading-none text-white md:text-7xl lg:text-8xl">
-              Get in Touch
+              {{ t('contact.title') }}
             </h1>
           </div>
 
           <p class="max-w-md text-base leading-8 text-text-subtle md:text-lg">
-            Refining the art of Khmer hospitality with a modern architectural pulse. We are here to assist your elite journey.
+            {{ t('contact.subtitle') }}
           </p>
         </div>
       </div>
@@ -91,14 +93,14 @@ function handleNewsletter() {
       <aside class="h-fit border border-border-card bg-card-dark/45 p-7 lg:p-9">
         <div class="space-y-8">
           <div class="border-b border-border-card pb-8">
-            <p class="mb-3 text-[10px] font-bold uppercase tracking-[0.35em] text-gold">Address</p>
+            <p class="mb-3 text-[10px] font-bold uppercase tracking-[0.35em] text-gold">{{ t('contact.address') }}</p>
             <h2 class="font-serif text-3xl leading-tight text-white">
               {{ lokpaAddress }}
             </h2>
           </div>
 
           <div class="border-b border-border-card pb-7">
-            <p class="mb-3 text-[10px] font-bold uppercase tracking-[0.35em] text-gold">Phone</p>
+            <p class="mb-3 text-[10px] font-bold uppercase tracking-[0.35em] text-gold">{{ t('contact.phone') }}</p>
             <a href="tel:+85523999888" class="flex items-center gap-3 text-white/90 transition-colors hover:text-gold">
               <Phone class="h-4 w-4 text-gold" />
               +855 (0) 23 999 888
@@ -106,7 +108,7 @@ function handleNewsletter() {
           </div>
 
           <div class="border-b border-border-card pb-7">
-            <p class="mb-3 text-[10px] font-bold uppercase tracking-[0.35em] text-gold">Email</p>
+            <p class="mb-3 text-[10px] font-bold uppercase tracking-[0.35em] text-gold">{{ t('contact.email') }}</p>
             <a href="mailto:phournkoemeang@gmail.com" class="flex items-center gap-3 text-white/90 transition-colors hover:text-gold">
               <Mail class="h-4 w-4 text-gold" />
               phournkoemeang@gmail.com
@@ -114,10 +116,8 @@ function handleNewsletter() {
           </div>
 
           <div>
-            <p class="mb-3 text-[10px] font-bold uppercase tracking-[0.35em] text-gold">Hours</p>
-            <p class="leading-7 text-white/90">
-              Monday - Sunday<br />
-              6:00 AM - 12:00 PM
+            <p class="mb-3 text-[10px] font-bold uppercase tracking-[0.35em] text-gold">{{ t('contact.hours') }}</p>
+            <p class="leading-7 text-white/90" v-html="t('contact.hours_detail')">
             </p>
           </div>
         </div>
@@ -127,42 +127,38 @@ function handleNewsletter() {
         <form @submit.prevent="handleSubmit" class="space-y-8">
           <div class="grid gap-8 md:grid-cols-2">
             <label class="block space-y-3">
-              <span class="text-[10px] font-bold uppercase tracking-[0.35em] text-white">Name</span>
+              <span class="text-[10px] font-bold uppercase tracking-[0.35em] text-white">{{ t('contact.name_label') }}</span>
               <input
                 v-model="inquiry.name"
                 type="text"
-                placeholder="Your Full Name"
+                :placeholder="t('contact.name_placeholder')"
                 class="w-full border-0 border-b border-gold/60 bg-transparent px-0 py-4 text-sm text-white outline-none transition-colors placeholder:text-text-muted focus:border-gold"
               />
             </label>
 
             <label class="block space-y-3">
-              <span class="text-[10px] font-bold uppercase tracking-[0.35em] text-white">Email</span>
+              <span class="text-[10px] font-bold uppercase tracking-[0.35em] text-white">{{ t('contact.email_label') }}</span>
               <input
                 v-model="inquiry.email"
                 type="email"
-                placeholder="email@example.com"
+                placeholder="name@example.com"
                 class="w-full border-0 border-b border-gold/60 bg-transparent px-0 py-4 text-sm text-white outline-none transition-colors placeholder:text-text-muted focus:border-gold"
               />
             </label>
           </div>
 
-          <label class="block space-y-3">
-            <span class="text-[10px] font-bold uppercase tracking-[0.35em] text-white">Subject</span>
+          <label class="block space-y-3">              <span class="text-[10px] font-bold uppercase tracking-[0.35em] text-white">{{ t('contact.subject_label') }}</span>
             <input
               v-model="inquiry.subject"
-              type="text"
-              placeholder="Nature of your inquiry"
+              type="text"                :placeholder="t('contact.subject_placeholder')"
               class="w-full border-0 border-b border-gold/60 bg-transparent px-0 py-4 text-sm text-white outline-none transition-colors placeholder:text-text-muted focus:border-gold"
             />
           </label>
 
-          <label class="block space-y-3">
-            <span class="text-[10px] font-bold uppercase tracking-[0.35em] text-white">Message</span>
+          <label class="block space-y-3">              <span class="text-[10px] font-bold uppercase tracking-[0.35em] text-white">{{ t('contact.message_label') }}</span>
             <textarea
               v-model="inquiry.message"
-              rows="4"
-              placeholder="How may we assist you?"
+              rows="4"                :placeholder="t('contact.message_placeholder')"
               class="w-full resize-none border-0 border-b border-gold/60 bg-transparent px-0 py-4 text-sm text-white outline-none transition-colors placeholder:text-text-muted focus:border-gold"
             ></textarea>
           </label>
@@ -174,22 +170,22 @@ function handleNewsletter() {
               class="inline-flex h-12 w-full items-center justify-center gap-2 bg-gold px-8 text-[10px] font-black uppercase tracking-[0.25em] text-base-dark transition-all hover:bg-gold-light disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
             >
               <Send class="h-4 w-4" />
-              {{ isSubmitting ? 'Sending...' : 'Send Inquiry' }}
+              {{ isSubmitting ? t('contact.sending') : t('contact.send_message') }}
             </button>
 
             <p v-if="status === 'success'" class="flex items-center gap-2 text-sm text-green-300">
               <CheckCircle2 class="h-4 w-4" />
-              Your inquiry has been received.
+              {{ t('contact.success_message') }}
             </p>
 
             <p v-if="status === 'error'" class="flex items-center gap-2 text-sm text-red-300">
               <AlertCircle class="h-4 w-4" />
-              Please complete every field.
+              {{ t('contact.error_message') }}
             </p>
           </div>
         </form>
 
-        <h2 class="mt-9 font-serif text-4xl text-white lg:text-5xl">Send an Inquiry</h2>
+        <h2 class="mt-9 font-serif text-4xl text-white lg:text-5xl">{{ t('contact.send_message') }}</h2>
       </div>
     </section>
 
@@ -212,7 +208,7 @@ function handleNewsletter() {
             rel="noreferrer"
             class="mt-7 inline-flex items-center gap-2 border border-gold/45 px-6 py-3 text-[10px] font-bold uppercase tracking-[0.25em] text-gold transition-all hover:bg-gold hover:text-base-dark"
           >
-            Get Directions
+            {{ t('contact.map_label') }}
             <ArrowUpRight class="h-4 w-4" />
           </a>
         </div>
@@ -221,7 +217,7 @@ function handleNewsletter() {
 
     <section class="container mx-auto grid gap-14 px-6 py-20 lg:grid-cols-2 lg:px-16 lg:py-24">
       <div>
-        <h2 class="font-serif text-3xl text-white">Follow the Legacy</h2>
+        <h2 class="font-serif text-3xl text-white">{{ t('contact.follow_label') }}</h2>
         <div class="mt-6 flex flex-wrap gap-7">
           <a href="#" class="inline-flex items-center gap-2 text-sm text-white/80 transition-colors hover:text-gold">
             <Instagram class="h-4 w-4 text-gold" />
@@ -235,23 +231,23 @@ function handleNewsletter() {
       </div>
 
       <form @submit.prevent="handleNewsletter" class="space-y-5">
-        <p class="text-[10px] font-bold uppercase tracking-[0.35em] text-gold">Join the Inner Circle</p>
+        <p class="text-[10px] font-bold uppercase tracking-[0.35em] text-gold">{{ t('contact.newsletter_title') }}</p>
         <div class="flex flex-col gap-4 border-b border-gold/55 pb-3 sm:flex-row sm:items-center">
           <input
             v-model="newsletterEmail"
             type="email"
-            placeholder="Your Email Address"
+            :placeholder="t('contact.newsletter_placeholder')"
             class="min-w-0 flex-1 bg-transparent py-3 text-sm text-white outline-none placeholder:text-text-muted"
           />
           <button
             type="submit"
             class="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.28em] text-gold transition-colors hover:text-gold-light"
           >
-            Subscribe
+            {{ t('contact.newsletter_btn') }}
             <Send class="h-4 w-4" />
           </button>
         </div>
-        <p v-if="newsletterStatus === 'success'" class="text-sm text-green-300">Thank you for subscribing.</p>
+        <p v-if="newsletterStatus === 'success'" class="text-sm text-green-300">{{ t('contact.newsletter_thanks') }}</p>
       </form>
     </section>
   </main>
