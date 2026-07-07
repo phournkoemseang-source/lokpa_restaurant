@@ -238,9 +238,9 @@ function handleLogout() {
   <header class="fixed top-0 left-0 right-0 z-50 px-4 pt-4">
     <nav class="mx-auto flex h-16 max-w-7xl items-center justify-between border border-gold/15 bg-base-dark/72 px-5 shadow-2xl shadow-black/30 backdrop-blur-xl lg:px-8">
       <router-link to="/" class="flex items-center gap-3 group">
-        <img src="/src/assets/images/logo.png" alt="NekMak Logo" class="h-10 w-10 object-contain transition-transform group-hover:scale-110" />
+        <img src="/src/assets/images/logo.png" alt="LokPa Logo" class="h-10 w-10 object-contain transition-transform group-hover:scale-110" />
         <span class="font-serif text-gold text-xl italic font-bold tracking-wide hover:text-gold-light transition-colors">
-          NekMak
+          LokPa
         </span>
       </router-link>
 

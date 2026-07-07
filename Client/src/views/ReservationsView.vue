@@ -217,7 +217,7 @@ function generateReceiptPDF() {
   doc.setTextColor(dark[0], dark[1], dark[2])
   doc.setFontSize(18)
   doc.setFont('helvetica', 'bold')
-  doc.text('NekMak', pageW / 2, 22, { align: 'center' })
+  doc.text('LokPa', pageW / 2, 22, { align: 'center' })
 
   doc.setFontSize(7)
   doc.setFont('helvetica', 'normal')
@@ -297,7 +297,7 @@ function generateReceiptPDF() {
   doc.setTextColor(gray[0], gray[1], gray[2])
   doc.text('Street 240, Phnom Penh · +855 (0) 23 999 888', pageW / 2, 192, { align: 'center' })
 
-  doc.save(`NekMak_Receipt_BK${res.id}.pdf`)
+  doc.save(`LokPa_Receipt_BK${res.id}.pdf`)
 }
 
 // ─── Navigation ───
@@ -350,13 +350,13 @@ const locationIcons: Record<string, any> = {
     <section class="relative min-h-[50vh] overflow-hidden">
       <img
         src="@/assets/pictures/EroupFoods/Wines/jeff-siepman-hK9hIPgF3QU-unsplash.jpg"
-        alt="NekMak premium restaurant reservation banner"
+        alt="LokPa premium restaurant reservation banner"
         class="absolute inset-0 h-full w-full object-cover"
       />
       <div class="absolute inset-0 bg-[linear-gradient(180deg,rgba(10,10,10,0.58),rgba(10,10,10,0.42)_38%,#0A0A0A_96%),linear-gradient(90deg,rgba(10,10,10,0.78),rgba(10,10,10,0.18)_52%,rgba(10,10,10,0.74))]"></div>
 
       <div class="relative z-10 mx-auto flex min-h-[50vh] max-w-7xl flex-col justify-center px-6 pb-16 pt-32 text-center lg:px-16">
-        <p class="text-[10px] font-black uppercase tracking-[0.45em] text-gold">NekMak Restaurant</p>
+        <p class="text-[10px] font-black uppercase tracking-[0.45em] text-gold">LokPa Restaurant</p>
         <h1 class="mx-auto mt-6 max-w-4xl font-serif text-5xl leading-tight text-white md:text-7xl">
           {{ t('reservations.title') }}
           <span class="block text-gold-light">{{ t('reservations.subtitle') }}</span>
@@ -632,10 +632,10 @@ const locationIcons: Record<string, any> = {
             <!-- KHQR Code -->
             <div class="flex flex-col items-center gap-6">
               <div class="transform rounded-2xl bg-white p-6 shadow-2xl shadow-gold/5 transition-transform duration-500 hover:scale-105">
-                <img :src="qrImage" alt="KHQR Payment for NekMak Restaurant" class="h-52 w-52 object-contain" />
+                <img :src="qrImage" alt="KHQR Payment for LokPa Restaurant" class="h-52 w-52 object-contain" />
               </div>
               <div class="text-center">
-                <p class="text-sm font-bold uppercase tracking-widest text-white">NekMak Restaurant</p>
+                <p class="text-sm font-bold uppercase tracking-widest text-white">LokPa Restaurant</p>
                 <p class="mt-1 text-[10px] italic text-gold">{{ t('cart.scan_with_bakong') }}</p>
               </div>
             </div>

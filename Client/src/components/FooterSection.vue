@@ -34,7 +34,7 @@ const socialLinks = [
       <div class="grid grid-cols-1 md:grid-cols-3 gap-12">
         <!-- Brand -->
         <div class="space-y-6">
-          <h3 class="font-serif text-gold text-3xl italic">NekMak</h3>
+          <h3 class="font-serif text-gold text-3xl italic">LokPa</h3>
           <p class="text-text-subtle text-sm leading-relaxed max-w-xs">
             {{ t('footer.brand_desc') }}
           </p>

@@ -111,7 +111,7 @@ watch(
             <div class="flex items-center gap-3">
               <ShoppingBag class="h-6 w-6 text-gold" />
               <div>
-                <h2 class="font-serif text-2xl text-white">NekMak Restaurant</h2>
+                <h2 class="font-serif text-2xl text-white">LokPa Restaurant</h2>
                 <p class="mt-1 text-xs text-text-subtle">{{ cartStore.items.length ? cartSummary : t('cart.select_your_dishes') }}</p>
               </div>
             </div>
@@ -248,10 +248,10 @@ watch(
               <div v-if="paymentMethod === 'khqr'" class="flex flex-col items-center gap-4">
                 <div
                   class="bg-white p-4 rounded-2xl shadow-2xl shadow-gold/5 transform hover:scale-105 transition-transform duration-500">
-                  <img :src="qrImage" alt="KHQR Payment for NekMak Restaurant" class="w-44 h-44 object-contain" />
+                  <img :src="qrImage" alt="KHQR Payment for LokPa Restaurant" class="w-44 h-44 object-contain" />
                 </div>
                 <div class="text-center space-y-1">
-                  <p class="text-white text-xs font-bold uppercase tracking-widest">NekMak Restaurant</p>
+                  <p class="text-white text-xs font-bold uppercase tracking-widest">LokPa Restaurant</p>
                   <p class="text-gold text-[10px] italic">{{ t('cart.scan_with_bakong') }}</p>
                 </div>
               </div>

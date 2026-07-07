@@ -244,7 +244,7 @@ const getFolderImages = (folder: string) => {
 
 const dishNameFor = (cuisine: Cuisine, categoryKey: string, index: number) => {
   const pools = categoryNamePools[cuisine] || {}
-  const names = pools[categoryKey] || ['NekMak Plate']
+  const names = pools[categoryKey] || ['LokPa Plate']
   return names[index % names.length]
 }
 
@@ -519,7 +519,7 @@ onMounted(async () => {
     <section class="relative flex min-h-[58vh] items-center justify-center overflow-hidden pt-24">
       <img
         src="@/assets/pictures/AsiaFoods/Foods/sharonang-fish-amok-921926_1920.jpg"
-        alt="NekMak signature menu"
+        alt="LokPa signature menu"
         class="absolute inset-0 h-full w-full scale-105 object-cover opacity-50"
       />
       <div class="absolute inset-0 bg-gradient-to-b from-base-dark/90 via-base-dark/55 to-base-dark"></div>
@@ -528,7 +528,7 @@ onMounted(async () => {
       <div class="relative z-10 max-w-4xl px-6 text-center">
         <div class="mb-4 flex items-center justify-center gap-4">
           <div class="h-px w-12 bg-gold/50"></div>
-          <span class="text-xs font-bold uppercase tracking-[0.5em] text-gold">NekMak Gastronomy</span>
+          <span class="text-xs font-bold uppercase tracking-[0.5em] text-gold">LokPa Gastronomy</span>
           <div class="h-px w-12 bg-gold/50"></div>
         </div>
         <h1 class="font-serif text-6xl leading-none tracking-tight text-white md:text-8xl">{{ t('menu.title') }}</h1>

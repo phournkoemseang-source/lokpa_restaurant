@@ -71,7 +71,7 @@ function handleAppleLogin() {
 <template>
   <div class="login-panel w-full max-w-md space-y-6 text-white">
     <div class="space-y-2 text-center">
-      <p class="font-serif text-4xl font-bold text-gold">NekMak</p>
+      <p class="font-serif text-4xl font-bold text-gold">LokPa</p>
       <h2 class="text-xl font-semibold text-white">
         {{ isLoginMode ? t('login.title') : t('login.signup_title') }}
       </h2>
@@ -109,7 +109,7 @@ function handleAppleLogin() {
         <label for="email" class="text-[10px] font-bold uppercase tracking-[0.16em] text-gold">
           {{ t('login.email') }}
         </label>
-        <input id="email" v-model="email" type="email" placeholder="customer@nekmak.com"
+        <input id="email" v-model="email" type="email" placeholder="customer@lokpa.com"
           class="login-input h-12 w-full border border-gold/15 bg-black/60 px-4 text-sm text-white outline-none transition-all placeholder:text-white/25 focus:border-gold focus:bg-black"
           required />
       </div>

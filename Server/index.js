@@ -349,7 +349,7 @@ const initDB = async () => {
     // Create admin user if not exists
     await db.execute(`
       INSERT IGNORE INTO users (email, password, name, role, provider) 
-      VALUES ('admin@nekmak.com', 'admin9988', 'Admin', 'admin', 'local')
+      VALUES ('admin@lokpa.com', 'admin9988', 'Admin', 'admin', 'local')
     `)
 
     // Seed menu items if empty
@@ -1321,7 +1321,7 @@ app.post('/api/admin/notify-new-menu', authenticateToken, isAdmin, async (req, r
     for (const user of users) {
       await db.execute(
         'INSERT INTO notifications (user_id, title, message, type, reference_id) VALUES (?, ?, ?, ?, ?)',
-        [user.id, '🍽️ New Menu Item Added!', `Check out our new dish: ${menu_item_name}. Come taste it today at NekMak!`, 'system', menu_item_id || null]
+        [user.id, '🍽️ New Menu Item Added!', `Check out our new dish: ${menu_item_name}. Come taste it today at LokPa Restaurant!`, 'system', menu_item_id || null]
       )
       notified++
     }

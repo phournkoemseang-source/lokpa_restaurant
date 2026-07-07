@@ -103,7 +103,7 @@ onMounted(fetchOrders)
     <div class="max-w-5xl mx-auto">
       <!-- Header -->
       <div class="mb-12 text-center">
-        <p class="text-[10px] font-black uppercase tracking-[0.45em] text-gold mb-4">NekMak</p>
+        <p class="text-[10px] font-black uppercase tracking-[0.45em] text-gold mb-4">LokPa</p>
         <h1 class="font-serif text-5xl md:text-6xl text-white mb-4">{{ t('orders.title') }}</h1>
         <p class="text-text-subtle max-w-xl mx-auto text-sm">{{ t('orders.description') }}</p>
       </div>

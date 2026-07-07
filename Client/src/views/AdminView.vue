@@ -819,8 +819,8 @@ const getStatusColor = (status: string) => {
     <aside :class="['w-72 border-r flex flex-col fixed h-full z-50 transition-colors duration-500', isDarkMode ? 'border-white/5 bg-black/40' : 'border-gray-200 bg-white']">
       <div class="p-8">
         <div class="flex items-center gap-4">
-          <img src="/src/assets/images/logo.png" alt="NekMak Logo" class="h-12 w-12 object-contain" />
-          <div>              <h1 class="font-serif text-2xl font-bold tracking-tight">NekMak</h1>
+          <img src="/src/assets/images/logo.png" alt="LokPa Logo" class="h-12 w-12 object-contain" />
+          <div>              <h1 class="font-serif text-2xl font-bold tracking-tight">LokPa</h1>
             <p :class="['text-[10px] uppercase tracking-[0.2em] font-black', isDarkMode ? 'text-gold' : 'text-gray-400']">{{ t('admin.subtitle') }}</p>
           </div>
         </div>

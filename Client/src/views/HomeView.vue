@@ -118,7 +118,7 @@ const socialLinks = [
 
       <div class="relative z-10 mx-auto grid w-full max-w-6xl items-center gap-10 lg:grid-cols-[0.92fr_1.08fr]">
         <div class="hidden lg:block">
-          <p class="text-[10px] font-black uppercase tracking-[0.45em] text-gold">NekMak Restaurant</p>
+          <p class="text-[10px] font-black uppercase tracking-[0.45em] text-gold">LokPa Restaurant</p>
           <h1 class="mt-7 font-serif text-6xl leading-[0.96] text-white">
             {{ t('home.title').split('.')[0] }}.
             <span class="block text-gold-light">{{ t('home.title').split('.')[1] }}.</span>
@@ -166,7 +166,7 @@ const socialLinks = [
         <div class="section-reveal grid gap-6 lg:grid-cols-[1.15fr_0.85fr]">
           <div class="relative min-h-[520px] overflow-hidden border border-white/10 bg-card-dark">
             <img src="@/assets/pictures/chefs/sebastian-coman-photography-cQbOSRpElxw-unsplash.jpg"
-              alt="NekMak chef preparing a modern Khmer and European fusion plate"
+              alt="LokPa chef preparing a modern Khmer and European fusion plate"
               class="absolute inset-0 h-full w-full object-cover opacity-75" />
             <div
               class="absolute inset-0 bg-[linear-gradient(90deg,rgba(10,10,10,0.92),rgba(10,10,10,0.45)_55%,rgba(10,10,10,0.18)),linear-gradient(180deg,rgba(10,10,10,0.12),rgba(10,10,10,0.92))]">
@@ -175,7 +175,7 @@ const socialLinks = [
             <div
               class="absolute left-6 top-6 border border-gold/25 bg-base-dark/72 px-5 py-4 backdrop-blur-md md:left-10 md:top-10">
               <p class="text-[10px] font-black uppercase tracking-[0.3em] text-gold">Street 240</p>
-              <p class="mt-2 font-serif text-2xl text-white">NekMak Restaurant</p>
+              <p class="mt-2 font-serif text-2xl text-white">LokPa Restaurant</p>
             </div>
 
             <div class="absolute bottom-0 left-0 right-0 grid gap-4 p-6 md:grid-cols-[0.82fr_1fr] md:p-10">
@@ -257,7 +257,7 @@ const socialLinks = [
         <div class="gallery-grid grid grid-cols-2 gap-4 md:grid-cols-4">
           <button v-for="(image, index) in galleryImages" :key="image" @click="selectedGalleryImage = image"
             :class="['group relative overflow-hidden border border-white/10 bg-base-dark', index === 0 || index === 5 ? 'md:col-span-2 md:row-span-2' : '']">
-            <img :src="image" alt="NekMak menu showcase"
+            <img :src="image" alt="LokPa menu showcase"
               class="h-full min-h-56 w-full object-cover transition-transform duration-700 group-hover:scale-110"
               loading="lazy" />
             <div class="absolute inset-0 bg-black/35 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
@@ -273,7 +273,7 @@ const socialLinks = [
       class="section-reveal container mx-auto grid gap-8 px-6 py-24 lg:grid-cols-[1.35fr_0.85fr] lg:px-16">
       <div class="relative min-h-[470px] overflow-hidden border border-white/10 bg-card-dark">
         <img src="@/assets/pictures/EroupFoods/Wines/no-revisions-Y1UkHcx9VpM-unsplash.jpg"
-          alt="NekMak dining sanctuary" class="absolute inset-0 h-full w-full object-cover opacity-58" />
+          alt="LokPa dining sanctuary" class="absolute inset-0 h-full w-full object-cover opacity-58" />
         <div class="absolute inset-0 bg-gradient-to-r from-base-dark/84 via-base-dark/45 to-transparent"></div>
         <div class="relative z-10 flex min-h-[470px] max-w-xl flex-col justify-center p-8 md:p-14">
           <Wine class="mb-6 h-9 w-9 text-gold" />
@@ -328,7 +328,7 @@ const socialLinks = [
     <section v-if="authStore.isAuthenticated" class="border-y border-white/5 bg-card-dark/30 py-20">
       <div class="container mx-auto grid gap-12 px-6 md:grid-cols-3 lg:px-16">
         <div>
-          <h2 class="font-serif text-4xl text-gold">NekMak Restaurant</h2>
+          <h2 class="font-serif text-4xl text-gold">LokPa Restaurant</h2>
           <p class="mt-4 max-w-sm text-sm leading-7 text-white/55">
             {{ t('home.service_desc') }}
           </p>
@@ -370,7 +370,7 @@ const socialLinks = [
           @click="selectedGalleryImage = null" :aria-label="t('common.close')">
           <X class="h-8 w-8" />
         </button>
-        <img :src="selectedGalleryImage" alt="NekMak gallery image"
+        <img :src="selectedGalleryImage" alt="LokPa gallery image"
           class="max-h-[86vh] max-w-[92vw] border border-gold/20 object-contain shadow-2xl shadow-black" />
       </div>
     </Transition>

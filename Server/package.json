@@ -1,7 +1,7 @@
 {
   "name": "lokpa-server",
   "version": "1.0.0",
-  "description": "Backend server for NekMak Restaurant Luxe Dining",
+  "description": "Backend server for LokPa Restaurant Luxe Dining",
   "main": "index.js",
   "type": "module",
   "scripts": {

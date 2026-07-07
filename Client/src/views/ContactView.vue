@@ -192,7 +192,7 @@ function handleNewsletter() {
     <section class="relative min-h-[520px] overflow-hidden">
       <img
         src="@/assets/pictures/EroupFoods/Wines/matthieu-joannon-6ciLddToTgM-unsplash.jpg"
-        alt="NekMak evening ambience"
+        alt="LokPa evening ambience"
         class="absolute inset-0 h-full w-full object-cover opacity-50"
       />
       <div class="absolute inset-0 bg-gradient-to-b from-base-dark via-base-dark/35 to-base-dark"></div>
@@ -200,7 +200,7 @@ function handleNewsletter() {
       <div class="relative z-10 flex min-h-[520px] items-center justify-center px-6 py-24">
         <div class="border border-gold/25 bg-base-dark/55 p-8 text-center shadow-2xl shadow-black/50 backdrop-blur-sm">
           <MapPin class="mx-auto mb-5 h-9 w-9 text-gold" />
-          <h2 class="font-serif text-3xl text-gold">NekMak Luxe</h2>
+          <h2 class="font-serif text-3xl text-gold">LokPa Luxe</h2>
           <p class="mt-2 max-w-sm text-[10px] font-bold uppercase leading-6 tracking-[0.25em] text-white/80">{{ lokpaAddress }}</p>
           <a
             :href="lokpaMapsUrl"

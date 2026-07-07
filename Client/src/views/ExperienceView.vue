@@ -75,7 +75,7 @@ const eventTimeline = computed(() => [
     <section class="relative min-h-screen overflow-hidden">
       <img
         src="@/assets/pictures/chefs/sebastian-coman-photography-cQbOSRpElxw-unsplash.jpg"
-        alt="NekMak chef finishing a refined plate"
+        alt="LokPa chef finishing a refined plate"
         class="absolute inset-0 h-full w-full object-cover"
       />
       <div class="absolute inset-0 bg-[linear-gradient(90deg,rgba(8,8,8,0.9),rgba(8,8,8,0.5)_48%,rgba(8,8,8,0.18)),linear-gradient(180deg,rgba(8,8,8,0.2),rgba(8,8,8,0.95)_92%)]"></div>
@@ -170,7 +170,7 @@ const eventTimeline = computed(() => [
         <div class="relative min-h-[520px] overflow-hidden border border-white/10">
           <img
             src="@/assets/pictures/EroupFoods/Foods/alex-munsell-auIbTAcSH6E-unsplash.jpg"
-            alt="NekMak signature plated dish"
+            alt="LokPa signature plated dish"
             class="absolute inset-0 h-full w-full object-cover opacity-75"
           />
           <div class="absolute inset-0 bg-[linear-gradient(90deg,rgba(8,8,8,0.88),rgba(8,8,8,0.35)),linear-gradient(180deg,transparent,rgba(8,8,8,0.94))]"></div>
