@@ -18,7 +18,22 @@ dotenv.config({ path: path.resolve(__dirname, '../.env') })
 const app = express()
 const PORT = process.env.PORT || 5001
 
-// Database connection
+// Ensure database exists before connecting to it
+const ensureDatabase = async () => {
+  const dbName = process.env.DB_NAME || 'lokpa_restaurant'
+  const tempConn = await mysql.createConnection({
+    host: process.env.DB_HOST || 'localhost',
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+  })
+  await tempConn.execute(`CREATE DATABASE IF NOT EXISTS \`${dbName}\``)
+  console.log(`Database '${dbName}' ensured`)
+  await tempConn.end()
+}
+
+await ensureDatabase()
+
+// Database connection pool
 const db = mysql.createPool({
   host: process.env.DB_HOST,
   user: process.env.DB_USER,
@@ -29,7 +44,7 @@ const db = mysql.createPool({
   queueLimit: 0
 })
 
-// Initialize database
+// Initialize database tables
 const initDB = async () => {
   try {
     const connection = await db.getConnection()
